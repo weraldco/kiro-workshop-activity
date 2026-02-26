@@ -1,0 +1,32 @@
+{
+  "workshops": [
+    {
+      "id": "5864024b-6177-4f81-b332-ff173eaf283f",
+      "title": "Python Workshop",
+      "description": "Learn Python basics",
+      "start_time": "2026-03-05T20:05:45.776805",
+      "end_time": "2026-03-06T02:05:45.776805",
+      "capacity": 20,
+      "delivery_mode": "online",
+      "registration_count": 1
+    }
+  ],
+  "challenges": [
+    {
+      "id": "0e268832-9e21-466b-84eb-7c5332bff7b9",
+      "workshop_id": "5864024b-6177-4f81-b332-ff173eaf283f",
+      "title": "Build a Calculator",
+      "description": "Create a simple calculator app",
+      "created_at": "2026-02-26T12:05:45.790573+00:00"
+    }
+  ],
+  "registrations": [
+    {
+      "id": "02029e47-d7fd-44bb-a33f-e7f8c0824974",
+      "workshop_id": "5864024b-6177-4f81-b332-ff173eaf283f",
+      "participant_name": "John Doe",
+      "participant_email": "john@example.com",
+      "registered_at": "2026-02-26T12:05:45.793035+00:00"
+    }
+  ]
+}
