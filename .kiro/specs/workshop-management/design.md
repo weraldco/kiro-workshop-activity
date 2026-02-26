@@ -102,37 +102,68 @@ Handles all workshop-related endpoints.
 - `POST /api/workshop/{id}/register` - Register for workshop
 - `GET /api/workshop/registrations` - List all registrations
 
+**Response Format:**
+
+All endpoints return responses in a standardized format:
+
+Successful responses:
+```json
+{
+  "success": true,
+  "data": {}
+}
+```
+
+Failed responses:
+```json
+{
+  "success": false,
+  "error": "error description",
+  "data": {}
+}
+```
+
 **Interface:**
 
 ```python
 @blueprint.route('/api/workshop', methods=['POST'])
 def create_workshop():
     # Returns: (response_body, status_code)
+    # Success: {"success": true, "data": {workshop_object}}, 201
+    # Failure: {"success": false, "error": "...", "data": {}}, 4xx
     pass
 
 @blueprint.route('/api/workshop', methods=['GET'])
 def list_workshops():
     # Returns: (response_body, status_code)
+    # Success: {"success": true, "data": [workshop_objects]}, 200
     pass
 
 @blueprint.route('/api/workshop/<workshop_id>', methods=['GET'])
 def get_workshop(workshop_id):
     # Returns: (response_body, status_code)
+    # Success: {"success": true, "data": {workshop_object}}, 200
+    # Failure: {"success": false, "error": "...", "data": {}}, 404
     pass
 
 @blueprint.route('/api/workshop/<workshop_id>/challenge', methods=['POST'])
 def create_challenge(workshop_id):
     # Returns: (response_body, status_code)
+    # Success: {"success": true, "data": {challenge_object}}, 201
+    # Failure: {"success": false, "error": "...", "data": {}}, 4xx
     pass
 
 @blueprint.route('/api/workshop/<workshop_id>/register', methods=['POST'])
 def register_for_workshop(workshop_id):
     # Returns: (response_body, status_code)
+    # Success: {"success": true, "data": {registration_object}}, 201
+    # Failure: {"success": false, "error": "...", "data": {}}, 4xx
     pass
 
 @blueprint.route('/api/workshop/registrations', methods=['GET'])
 def list_registrations():
     # Returns: (response_body, status_code)
+    # Success: {"success": true, "data": [registration_objects]}, 200
     pass
 ```
 
@@ -469,31 +500,31 @@ The JSON file stores all data in a single root object:
 
 ### Property 1: Workshop Creation with Valid Data
 
-*For any* valid workshop data (non-empty title, valid time range where start < end, positive capacity, valid delivery mode), creating a workshop should return a 201 status with a unique Workshop_ID, and the workshop should be retrievable with all provided data intact.
+*For any* valid workshop data (non-empty title, valid time range where start < end, positive capacity, valid delivery mode), creating a workshop should return a 201 status with `success: true`, a unique Workshop_ID in the data field, and the workshop should be retrievable with all provided data intact.
 
 **Validates: Requirements 1.1, 1.7, 2.1**
 
 ### Property 2: Non-Empty Title Validation
 
-*For any* workshop or challenge creation request with an empty or whitespace-only title, the API should return a 400 status with a descriptive error message, and no entity should be created.
+*For any* workshop or challenge creation request with an empty or whitespace-only title, the API should return a 400 status with `success: false`, a descriptive error message in the error field, and no entity should be created.
 
 **Validates: Requirements 1.2, 4.3**
 
 ### Property 3: Time Range Validation
 
-*For any* workshop creation request where start_time is greater than or equal to end_time, the API should return a 400 status with a descriptive error message, and no workshop should be created.
+*For any* workshop creation request where start_time is greater than or equal to end_time, the API should return a 400 status with `success: false`, a descriptive error message in the error field, and no workshop should be created.
 
 **Validates: Requirements 1.3**
 
 ### Property 4: Positive Capacity Validation
 
-*For any* workshop creation request with a capacity that is zero, negative, or not an integer, the API should return a 400 status with a descriptive error message, and no workshop should be created.
+*For any* workshop creation request with a capacity that is zero, negative, or not an integer, the API should return a 400 status with `success: false`, a descriptive error message in the error field, and no workshop should be created.
 
 **Validates: Requirements 1.4**
 
 ### Property 5: Delivery Mode Validation
 
-*For any* workshop creation request with a delivery_mode that is not one of "online", "face-to-face", or "hybrid", the API should return a 400 status with a descriptive error message, and no workshop should be created.
+*For any* workshop creation request with a delivery_mode that is not one of "online", "face-to-face", or "hybrid", the API should return a 400 status with `success: false`, a descriptive error message in the error field, and no workshop should be created.
 
 **Validates: Requirements 1.5**
 
@@ -505,31 +536,31 @@ The JSON file stores all data in a single root object:
 
 ### Property 7: Non-Existent Resource Returns 404
 
-*For any* request to retrieve a workshop by ID, create a challenge for a workshop, or register for a workshop, if the workshop ID does not exist, the API should return a 404 status.
+*For any* request to retrieve a workshop by ID, create a challenge for a workshop, or register for a workshop, if the workshop ID does not exist, the API should return a 404 status with `success: false` and an appropriate error message.
 
 **Validates: Requirements 2.2, 4.2, 6.5**
 
 ### Property 8: Complete Workshop Data in Responses
 
-*For any* workshop retrieved individually or in a list, the response should include all required fields: id, title, description, start_time, end_time, capacity, delivery_mode, and registration_count.
+*For any* workshop retrieved individually or in a list, the response should have `success: true` and the data field should include all required fields: id, title, description, start_time, end_time, capacity, delivery_mode, and registration_count.
 
 **Validates: Requirements 2.3, 3.3**
 
 ### Property 9: List All Created Workshops
 
-*For any* set of workshops created through the API, requesting the workshop list should return all created workshops with a 200 status.
+*For any* set of workshops created through the API, requesting the workshop list should return `success: true` with a 200 status, and the data field should contain all created workshops.
 
 **Validates: Requirements 3.1**
 
 ### Property 10: Challenge Creation for Existing Workshop
 
-*For any* existing workshop and valid challenge data (non-empty title), creating a challenge should return a 201 status with a unique Challenge_ID, and the challenge should be associated with the correct workshop.
+*For any* existing workshop and valid challenge data (non-empty title), creating a challenge should return a 201 status with `success: true`, a unique Challenge_ID in the data field, and the challenge should be associated with the correct workshop.
 
 **Validates: Requirements 4.1, 5.1**
 
 ### Property 11: Registration Creation and Count Increment
 
-*For any* existing workshop with available capacity and valid registration data, creating a registration should return a 201 status with a unique Registration_ID, and the workshop's registration_count should increment by exactly one.
+*For any* existing workshop with available capacity and valid registration data, creating a registration should return a 201 status with `success: true`, a unique Registration_ID in the data field, and the workshop's registration_count should increment by exactly one.
 
 **Validates: Requirements 6.1, 6.2**
 
@@ -583,17 +614,28 @@ The JSON file stores all data in a single root object:
 
 ## Error Handling
 
-### Error Response Structure
+### Response Structure
 
-All error responses follow a consistent JSON structure:
+All API responses follow a standardized JSON structure.
 
-```python
+**Successful Response:**
+```json
 {
-    "error": "Brief error description",
-    "message": "Detailed error message",
-    "status": 400  # HTTP status code
+  "success": true,
+  "data": {}
 }
 ```
+
+**Failed Response:**
+```json
+{
+  "success": false,
+  "error": "error description",
+  "data": {}
+}
+```
+
+The `data` field contains the response payload for successful requests (workshop object, list of workshops, etc.) and is typically an empty object for failed requests.
 
 ### Error Categories
 
@@ -606,11 +648,11 @@ Returned when:
 - Field data types are incorrect
 
 Example:
-```python
+```json
 {
-    "error": "Validation Error",
-    "message": "Title must be a non-empty string",
-    "status": 400
+  "success": false,
+  "error": "Title must be a non-empty string",
+  "data": {}
 }
 ```
 
@@ -622,11 +664,11 @@ Returned when:
 - Attempting to register for non-existent workshop
 
 Example:
-```python
+```json
 {
-    "error": "Not Found",
-    "message": "Workshop with ID 'abc-123' does not exist",
-    "status": 404
+  "success": false,
+  "error": "Workshop with ID 'abc-123' does not exist",
+  "data": {}
 }
 ```
 
@@ -636,11 +678,11 @@ Returned when:
 - Attempting to register for a workshop that has reached capacity
 
 Example:
-```python
+```json
 {
-    "error": "Conflict",
-    "message": "Workshop is full. Registration count has reached capacity.",
-    "status": 409
+  "success": false,
+  "error": "Workshop is full. Registration count has reached capacity.",
+  "data": {}
 }
 ```
 
@@ -651,11 +693,11 @@ Returned when:
 - File system errors during persistence operations
 
 Example:
-```python
+```json
 {
-    "error": "Internal Server Error",
-    "message": "An unexpected error occurred. Please try again later.",
-    "status": 500
+  "success": false,
+  "error": "An unexpected error occurred. Please try again later.",
+  "data": {}
 }
 ```
 
