@@ -5,7 +5,7 @@ Test that data persists across server restarts
 import requests
 import json
 
-BASE_URL = "http://localhost:5001/api/workshop"
+BASE_URL = "http://localhost:3535/api/workshop"
 
 print("Testing persistence after server restart...")
 print("=" * 60)

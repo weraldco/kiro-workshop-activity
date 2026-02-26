@@ -7,7 +7,7 @@ import json
 import time
 from datetime import datetime, timedelta
 
-BASE_URL = "http://localhost:5001/api/workshop"
+BASE_URL = "http://localhost:3535/api/workshop"
 
 def test_create_workshop():
     """Test POST /api/workshop"""

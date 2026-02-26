@@ -9,6 +9,16 @@
       "capacity": 20,
       "delivery_mode": "online",
       "registration_count": 1
+    },
+    {
+      "id": "f1cca4d9-2ee9-4c9f-8e03-ff920721823c",
+      "title": "Python Workshop",
+      "description": "Learn Python basics",
+      "start_time": "2026-03-01T10:00:00Z",
+      "end_time": "2026-03-01T12:00:00Z",
+      "capacity": 20,
+      "delivery_mode": "online",
+      "registration_count": 0
     }
   ],
   "challenges": [
