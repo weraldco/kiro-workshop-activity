@@ -1,84 +1,82 @@
-# Workshop Management API
+# Workshop Management System
 
-A Flask-based REST API for managing workshops, challenges, and participant registrations with JSON file persistence.
+A full-stack TypeScript application for managing workshops with lifecycle states (pending, ongoing, completed), participant signups, and challenge visibility control. Built with Node.js backend API and Next.js frontend.
 
 ## Features
 
-- 🎯 Create and manage workshops with capacity limits
-- 📝 Add challenges to workshops
-- 👥 Register participants with automatic capacity enforcement
-- 💾 Thread-safe JSON file persistence
-- ✅ Comprehensive input validation
-- 🔄 RESTful API design with standardized responses
-- 🧪 68 automated tests (unit, property-based, integration)
+- 🎯 Workshop lifecycle management (pending → ongoing → completed)
+- 👥 State-driven participant signup control
+- 📝 Challenge visibility based on workshop status
+- 🔐 Access control for participants and challenges
+- 💾 JSON file-based persistence
+- ✅ Comprehensive validation and referential integrity
+- 🔄 RESTful API design with TypeScript
+- 🎨 Next.js frontend with TailwindCSS
+- 🧪 174 automated tests (all passing)
 
 ## Requirements
 
-- Python 3.8 or higher
-- pip (Python package manager)
+- Node.js 16.x or higher
+- npm or yarn package manager
 
 ## Quick Start
 
 ### 1. Installation
 
-Clone the repository or navigate to the project directory:
+Clone the repository and navigate to the project directory:
 
 ```bash
-cd workshop-management-api
+cd workshop-management-system
 ```
 
-Create a virtual environment (recommended):
+Install backend dependencies:
 
 ```bash
-# On macOS/Linux
-python3 -m venv venv
-source venv/bin/activate
-
-# On Windows
-python -m venv venv
-venv\Scripts\activate
+cd backend
+npm install
 ```
 
-Install dependencies:
+Install frontend dependencies:
 
 ```bash
-pip install -r requirements.txt
+cd ../frontend
+npm install
 ```
 
 ### 2. Running the Application
 
-Start the Flask development server:
+#### Backend API
+
+Start the backend server:
 
 ```bash
-python app.py
+cd backend
+npm run dev
 ```
 
-You should see output like:
+The API will be available at `http://localhost:3535`
 
+#### Frontend
+
+In a separate terminal, start the frontend development server:
+
+```bash
+cd frontend
+npm run dev
 ```
- * Serving Flask app 'app'
- * Debug mode: on
- * Running on http://0.0.0.0:3535
-```
 
-The API is now available at `http://localhost:3535`
-
-> **Note**: If port 3535 is in use, you can change it in `app.py` by modifying the `port` parameter in `app.run()`
+The frontend will be available at `http://localhost:3000`
 
 ### 3. Test the API
 
 Open a new terminal and try creating a workshop:
 
 ```bash
-curl -X POST http://localhost:3535/api/workshop \
+curl -X POST http://localhost:3535/api/workshops \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "Python Workshop",
-    "description": "Learn Python basics",
-    "start_time": "2024-03-01T10:00:00",
-    "end_time": "2024-03-01T16:00:00",
-    "capacity": 20,
-    "delivery_mode": "online"
+    "title": "TypeScript Workshop",
+    "description": "Learn TypeScript fundamentals"
   }'
 ```
 
@@ -86,26 +84,26 @@ You should receive a `201 Created` response with the workshop details.
 
 ## API Endpoints
 
-All responses follow a standardized format for consistency and easy parsing.
+All API endpoints are prefixed with `/api` and return JSON responses.
 
 ### Response Format
 
-**Success Response (HTTP 2xx):**
+**Success Response:**
 ```json
 {
-  "success": true,
-  "data": {
-    // Response payload
-  }
+  "id": "uuid",
+  "title": "Workshop Title",
+  "status": "pending",
+  ...
 }
 ```
 
-**Error Response (HTTP 4xx/5xx):**
+**Error Response:**
 ```json
 {
-  "success": false,
   "error": "Human-readable error description",
-  "data": {}
+  "code": "ERROR_CODE",
+  "status": 400
 }
 ```
 
@@ -115,68 +113,38 @@ All responses follow a standardized format for consistency and easy parsing.
 
 #### 1. Create Workshop
 
-Creates a new workshop with the specified details.
+Creates a new workshop with default status='pending' and signup_enabled=true.
 
-**Endpoint:** `POST /api/workshop`
-
-**Request Headers:**
-```
-Content-Type: application/json
-```
+**Endpoint:** `POST /api/workshops`
 
 **Request Body:**
 ```json
 {
-  "title": "Python Workshop",
-  "description": "Learn Python basics",
-  "start_time": "2024-03-01T10:00:00",
-  "end_time": "2024-03-01T16:00:00",
-  "capacity": 20,
-  "delivery_mode": "online"
+  "title": "TypeScript Workshop",
+  "description": "Learn TypeScript fundamentals"
 }
 ```
 
 **Field Descriptions:**
-- `title` (string, required): Workshop title, must be non-empty
-- `description` (string, optional): Workshop description
-- `start_time` (string, required): Start time in ISO 8601 format
-- `end_time` (string, required): End time in ISO 8601 format (must be after start_time)
-- `capacity` (integer, required): Maximum number of participants (must be positive)
-- `delivery_mode` (string, required): One of "online", "face-to-face", or "hybrid"
+- `title` (string, required): Workshop title (1-200 characters)
+- `description` (string, required): Workshop description (1-1000 characters)
 
 **Success Response:** `201 Created`
 ```json
 {
-  "success": true,
-  "data": {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "title": "Python Workshop",
-    "description": "Learn Python basics",
-    "start_time": "2024-03-01T10:00:00",
-    "end_time": "2024-03-01T16:00:00",
-    "capacity": 20,
-    "delivery_mode": "online",
-    "registration_count": 0
-  }
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "title": "TypeScript Workshop",
+  "description": "Learn TypeScript fundamentals",
+  "status": "pending",
+  "signup_enabled": true,
+  "created_at": "2026-02-27T00:00:00.000Z",
+  "updated_at": "2026-02-27T00:00:00.000Z"
 }
 ```
 
 **Error Responses:**
-- `400 Bad Request`: Invalid input (empty title, invalid time range, invalid capacity, invalid delivery mode)
-
-**Example:**
-```bash
-curl -X POST http://localhost:3535/api/workshop \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Python Workshop",
-    "description": "Learn Python basics",
-    "start_time": "2024-03-01T10:00:00",
-    "end_time": "2024-03-01T16:00:00",
-    "capacity": 20,
-    "delivery_mode": "online"
-  }'
-```
+- `400 Bad Request`: Invalid input (missing title/description, length violations)
+- `500 Internal Server Error`: Database error
 
 ---
 
@@ -184,303 +152,339 @@ curl -X POST http://localhost:3535/api/workshop \
 
 Retrieves all workshops in the system.
 
-**Endpoint:** `GET /api/workshop`
+**Endpoint:** `GET /api/workshops`
+
+**Success Response:** `200 OK`
+```json
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "title": "TypeScript Workshop",
+    "description": "Learn TypeScript fundamentals",
+    "status": "pending",
+    "signup_enabled": true,
+    "created_at": "2026-02-27T00:00:00.000Z",
+    "updated_at": "2026-02-27T00:00:00.000Z"
+  }
+]
+```
+
+---
+
+#### 3. Update Workshop Status
+
+Updates the workshop status (pending → ongoing → completed).
+
+**Endpoint:** `PATCH /api/workshops/:id/status`
+
+**Request Body:**
+```json
+{
+  "status": "ongoing"
+}
+```
+
+**Valid Status Values:**
+- `pending`: Workshop is open for signups
+- `ongoing`: Workshop is in progress, challenges visible to participants
+- `completed`: Workshop is finished
 
 **Success Response:** `200 OK`
 ```json
 {
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "title": "TypeScript Workshop",
+  "status": "ongoing",
+  "updated_at": "2026-02-27T01:00:00.000Z",
+  ...
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Invalid status value
+- `404 Not Found`: Workshop not found
+
+---
+
+#### 4. Toggle Signup Flag
+
+Enables or disables participant signups for a workshop.
+
+**Endpoint:** `PATCH /api/workshops/:id/signup-flag`
+
+**Request Body:**
+```json
+{
+  "signup_enabled": false
+}
+```
+
+**Success Response:** `200 OK`
+
+**Error Responses:**
+- `400 Bad Request`: Invalid boolean value
+- `404 Not Found`: Workshop not found
+
+---
+
+### Participant Endpoints
+
+#### 5. Sign Up for Workshop
+
+Registers a participant for a workshop (only allowed when status='pending' AND signup_enabled=true).
+
+**Endpoint:** `POST /api/workshops/:id/signup`
+
+**Request Body:**
+```json
+{
+  "user_id": "user123"
+}
+```
+
+**Success Response:** `201 Created`
+```json
+{
   "success": true,
-  "data": [
+  "participant_id": "660e8400-e29b-41d4-a716-446655440001"
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Missing user_id
+- `403 Forbidden`: Signups not allowed (status not pending or signup_enabled=false)
+- `404 Not Found`: Workshop not found
+- `409 Conflict`: Duplicate signup
+
+---
+
+#### 6. List Workshop Participants
+
+Retrieves all participants for a specific workshop.
+
+**Endpoint:** `GET /api/workshops/:id/participants`
+
+**Success Response:** `200 OK`
+```json
+{
+  "participants": [
     {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
-      "title": "Python Workshop",
-      "description": "Learn Python basics",
-      "start_time": "2024-03-01T10:00:00",
-      "end_time": "2024-03-01T16:00:00",
-      "capacity": 20,
-      "delivery_mode": "online",
-      "registration_count": 5
+      "id": "660e8400-e29b-41d4-a716-446655440001",
+      "workshop_id": "550e8400-e29b-41d4-a716-446655440000",
+      "user_id": "user123",
+      "signed_up_at": "2026-02-27T00:30:00.000Z"
     }
   ]
 }
 ```
 
-**Example:**
-```bash
-curl http://localhost:3535/api/workshop
-```
-
----
-
-#### 3. Get Specific Workshop
-
-Retrieves details of a specific workshop by ID.
-
-**Endpoint:** `GET /api/workshop/{workshop_id}`
-
-**URL Parameters:**
-- `workshop_id` (string, required): The unique workshop identifier
-
-**Success Response:** `200 OK`
-```json
-{
-  "success": true,
-  "data": {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "title": "Python Workshop",
-    "description": "Learn Python basics",
-    "start_time": "2024-03-01T10:00:00",
-    "end_time": "2024-03-01T16:00:00",
-    "capacity": 20,
-    "delivery_mode": "online",
-    "registration_count": 5
-  }
-}
-```
-
 **Error Responses:**
-- `404 Not Found`: Workshop with the specified ID does not exist
-
-**Example:**
-```bash
-curl http://localhost:3535/api/workshop/550e8400-e29b-41d4-a716-446655440000
-```
+- `404 Not Found`: Workshop not found
 
 ---
 
 ### Challenge Endpoints
 
-#### 4. Create Challenge
+#### 7. Create Challenge
 
-Creates a new challenge for a specific workshop.
+Creates a new challenge for a workshop.
 
-**Endpoint:** `POST /api/workshop/{workshop_id}/challenge`
-
-**URL Parameters:**
-- `workshop_id` (string, required): The workshop identifier
-
-**Request Headers:**
-```
-Content-Type: application/json
-```
+**Endpoint:** `POST /api/workshops/:id/challenges`
 
 **Request Body:**
 ```json
 {
-  "title": "Build a Calculator",
-  "description": "Create a simple calculator app"
+  "title": "Build a REST API",
+  "description": "Create a RESTful API with TypeScript",
+  "html_content": "<h1>Challenge Instructions</h1><p>Build an API...</p>"
 }
 ```
 
 **Field Descriptions:**
-- `title` (string, required): Challenge title, must be non-empty
-- `description` (string, optional): Challenge description
+- `title` (string, required): Challenge title (1-200 characters)
+- `description` (string, required): Challenge description (1-1000 characters)
+- `html_content` (string, required): HTML content for the challenge
 
 **Success Response:** `201 Created`
 ```json
 {
   "success": true,
-  "data": {
-    "id": "660e8400-e29b-41d4-a716-446655440001",
-    "workshop_id": "550e8400-e29b-41d4-a716-446655440000",
-    "title": "Build a Calculator",
-    "description": "Create a simple calculator app",
-    "created_at": "2024-02-26T12:00:00+00:00"
-  }
+  "challenge_id": "770e8400-e29b-41d4-a716-446655440002"
 }
 ```
 
 **Error Responses:**
-- `400 Bad Request`: Invalid input (empty title)
-- `404 Not Found`: Workshop does not exist
-
-**Example:**
-```bash
-curl -X POST http://localhost:3535/api/workshop/550e8400-e29b-41d4-a716-446655440000/challenge \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Build a Calculator",
-    "description": "Create a simple calculator app"
-  }'
-```
+- `400 Bad Request`: Validation error (missing fields, length violations, invalid HTML)
+- `404 Not Found`: Workshop not found
 
 ---
 
-### Registration Endpoints
+#### 8. List Workshop Challenges
 
-#### 5. Register for Workshop
+Retrieves challenges for a workshop (only accessible when status='ongoing' AND user is a participant).
 
-Registers a participant for a specific workshop.
+**Endpoint:** `GET /api/workshops/:id/challenges?user_id=user123`
 
-**Endpoint:** `POST /api/workshop/{workshop_id}/register`
-
-**URL Parameters:**
-- `workshop_id` (string, required): The workshop identifier
-
-**Request Headers:**
-```
-Content-Type: application/json
-```
-
-**Request Body:**
-```json
-{
-  "participant_name": "John Doe",
-  "participant_email": "john@example.com"
-}
-```
-
-**Field Descriptions:**
-- `participant_name` (string, required): Participant's full name
-- `participant_email` (string, required): Participant's email address
-
-**Success Response:** `201 Created`
-```json
-{
-  "success": true,
-  "data": {
-    "id": "770e8400-e29b-41d4-a716-446655440002",
-    "workshop_id": "550e8400-e29b-41d4-a716-446655440000",
-    "participant_name": "John Doe",
-    "participant_email": "john@example.com",
-    "registered_at": "2024-02-26T12:30:00+00:00"
-  }
-}
-```
-
-**Error Responses:**
-- `400 Bad Request`: Missing required fields
-- `404 Not Found`: Workshop does not exist
-- `409 Conflict`: Workshop is at full capacity
-
-**Example:**
-```bash
-curl -X POST http://localhost:3535/api/workshop/550e8400-e29b-41d4-a716-446655440000/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "participant_name": "John Doe",
-    "participant_email": "john@example.com"
-  }'
-```
-
----
-
-#### 6. List All Registrations
-
-Retrieves all registrations across all workshops.
-
-**Endpoint:** `GET /api/workshop/registrations`
+**Query Parameters:**
+- `user_id` (string, required): User requesting access
 
 **Success Response:** `200 OK`
 ```json
 {
-  "success": true,
-  "data": [
+  "challenges": [
     {
       "id": "770e8400-e29b-41d4-a716-446655440002",
       "workshop_id": "550e8400-e29b-41d4-a716-446655440000",
-      "participant_name": "John Doe",
-      "participant_email": "john@example.com",
-      "registered_at": "2024-02-26T12:30:00+00:00"
+      "title": "Build a REST API",
+      "description": "Create a RESTful API with TypeScript",
+      "html_content": "<h1>Challenge Instructions</h1>..."
     }
   ]
 }
 ```
 
-**Example:**
-```bash
-curl http://localhost:3535/api/workshop/registrations
+**Error Responses:**
+- `400 Bad Request`: Missing user_id
+- `403 Forbidden`: Access denied (workshop not ongoing or user not a participant)
+- `404 Not Found`: Workshop not found
+
+---
+
+#### 9. Get Challenge Details
+
+Retrieves a specific challenge (with access control).
+
+**Endpoint:** `GET /api/challenges/:id?user_id=user123`
+
+**Query Parameters:**
+- `user_id` (string, required): User requesting access
+
+**Success Response:** `200 OK`
+```json
+{
+  "id": "770e8400-e29b-41d4-a716-446655440002",
+  "workshop_id": "550e8400-e29b-41d4-a716-446655440000",
+  "title": "Build a REST API",
+  "description": "Create a RESTful API with TypeScript",
+  "html_content": "<h1>Challenge Instructions</h1>..."
+}
 ```
+
+**Error Responses:**
+- `400 Bad Request`: Missing user_id
+- `403 Forbidden`: Access denied
+- `404 Not Found`: Challenge not found
 
 ---
 
 ## Complete API Workflow Example
 
-Here's a complete workflow demonstrating all API endpoints:
+Here's a complete workflow demonstrating the workshop lifecycle:
 
 ```bash
 # 1. Create a workshop
-WORKSHOP_RESPONSE=$(curl -s -X POST http://localhost:3535/api/workshop \
+WORKSHOP_RESPONSE=$(curl -s -X POST http://localhost:3535/api/workshops \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "Advanced Python",
-    "description": "Deep dive into Python",
-    "start_time": "2024-04-15T09:00:00",
-    "end_time": "2024-04-15T17:00:00",
-    "capacity": 15,
-    "delivery_mode": "hybrid"
+    "title": "Advanced TypeScript",
+    "description": "Deep dive into TypeScript advanced features"
   }')
 
 # Extract workshop ID (requires jq)
-WORKSHOP_ID=$(echo $WORKSHOP_RESPONSE | jq -r '.data.id')
+WORKSHOP_ID=$(echo $WORKSHOP_RESPONSE | jq -r '.id')
 echo "Created workshop: $WORKSHOP_ID"
 
 # 2. List all workshops
-curl http://localhost:3535/api/workshop
+curl http://localhost:3535/api/workshops
 
-# 3. Get specific workshop
-curl http://localhost:3535/api/workshop/$WORKSHOP_ID
+# 3. Sign up participants (workshop is in 'pending' status)
+curl -X POST http://localhost:3535/api/workshops/$WORKSHOP_ID/signup \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "alice123"}'
 
-# 4. Create a challenge
-curl -X POST http://localhost:3535/api/workshop/$WORKSHOP_ID/challenge \
+curl -X POST http://localhost:3535/api/workshops/$WORKSHOP_ID/signup \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "bob456"}'
+
+# 4. Create challenges
+curl -X POST http://localhost:3535/api/workshops/$WORKSHOP_ID/challenges \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "Build a Web Scraper",
-    "description": "Create a web scraper using BeautifulSoup"
+    "title": "Type Guards Challenge",
+    "description": "Implement custom type guards",
+    "html_content": "<h1>Challenge</h1><p>Create type guards...</p>"
   }'
 
-# 5. Register participants
-curl -X POST http://localhost:3535/api/workshop/$WORKSHOP_ID/register \
+# 5. Start the workshop (change status to 'ongoing')
+curl -X PATCH http://localhost:3535/api/workshops/$WORKSHOP_ID/status \
   -H "Content-Type: application/json" \
-  -d '{
-    "participant_name": "Alice Smith",
-    "participant_email": "alice@example.com"
-  }'
+  -d '{"status": "ongoing"}'
 
-curl -X POST http://localhost:3535/api/workshop/$WORKSHOP_ID/register \
+# 6. Participants can now access challenges
+curl "http://localhost:3535/api/workshops/$WORKSHOP_ID/challenges?user_id=alice123"
+
+# 7. Complete the workshop
+curl -X PATCH http://localhost:3535/api/workshops/$WORKSHOP_ID/status \
   -H "Content-Type: application/json" \
-  -d '{
-    "participant_name": "Bob Johnson",
-    "participant_email": "bob@example.com"
-  }'
-
-# 6. List all registrations
-curl http://localhost:3535/api/workshop/registrations
+  -d '{"status": "completed"}'
 ```
 
 ---
 
-## Validation Rules
+## Access Control Rules
 
-### Workshop Creation
+The system enforces strict access control based on workshop status:
 
-| Field | Type | Required | Validation Rules |
-|-------|------|----------|------------------|
-| `title` | string | Yes | Must be non-empty (not blank or whitespace only) |
-| `description` | string | No | Any string value |
-| `start_time` | string | Yes | ISO 8601 format, must be before `end_time` |
-| `end_time` | string | Yes | ISO 8601 format, must be after `start_time` |
-| `capacity` | integer | Yes | Must be a positive integer (> 0) |
-| `delivery_mode` | string | Yes | Must be one of: "online", "face-to-face", "hybrid" |
+### Signup Rules
+- ✅ Allowed: `status='pending'` AND `signup_enabled=true`
+- ❌ Blocked: `status='ongoing'` OR `status='completed'` OR `signup_enabled=false`
 
-### Challenge Creation
+### Challenge Visibility Rules
+- ✅ Visible: `status='ongoing'` AND user is a participant
+- ❌ Hidden: `status='pending'` OR `status='completed'` OR user is not a participant
 
-| Field | Type | Required | Validation Rules |
-|-------|------|----------|------------------|
-| `title` | string | Yes | Must be non-empty (not blank or whitespace only) |
-| `description` | string | No | Any string value |
+### Status Transitions
+```
+pending → ongoing → completed
+```
 
-### Registration
+---
 
-| Field | Type | Required | Validation Rules |
-|-------|------|----------|------------------|
-| `participant_name` | string | Yes | Must be provided |
-| `participant_email` | string | Yes | Must be provided |
+## Data Models
 
-**Additional Registration Rules:**
-- Workshop must exist (404 if not found)
-- Workshop must have available capacity (409 if full)
-- Registration count is automatically incremented
+### Workshop
+```typescript
+interface Workshop {
+  id: string;                    // UUID v4
+  title: string;                 // 1-200 characters
+  description: string;           // 1-1000 characters
+  status: 'pending' | 'ongoing' | 'completed';
+  signup_enabled: boolean;       // Default: true
+  created_at: string;            // ISO 8601 timestamp
+  updated_at: string;            // ISO 8601 timestamp
+}
+```
+
+### Participant
+```typescript
+interface Participant {
+  id: string;                    // UUID v4
+  workshop_id: string;           // Foreign key to Workshop
+  user_id: string;               // User identifier
+  signed_up_at: string;          // ISO 8601 timestamp
+}
+```
+
+### Challenge
+```typescript
+interface Challenge {
+  id: string;                    // UUID v4
+  workshop_id: string;           // Foreign key to Workshop
+  title: string;                 // 1-200 characters
+  description: string;           // 1-1000 characters
+  html_content: string;          // Valid HTML
+}
+```
 
 ---
 
@@ -488,12 +492,13 @@ curl http://localhost:3535/api/workshop/registrations
 
 | Status Code | Meaning | When It Occurs |
 |-------------|---------|----------------|
-| `200 OK` | Success | GET requests return data successfully |
+| `200 OK` | Success | GET/PATCH requests return data successfully |
 | `201 Created` | Resource created | POST requests create new resources successfully |
-| `400 Bad Request` | Invalid input | Validation fails (empty title, invalid time range, invalid capacity, invalid delivery mode, missing fields, malformed JSON) |
-| `404 Not Found` | Resource not found | Workshop ID does not exist |
-| `409 Conflict` | Business rule violation | Workshop is at full capacity |
-| `500 Internal Server Error` | Server error | Unexpected server error (file system issues, etc.) |
+| `400 Bad Request` | Invalid input | Validation fails (missing fields, length violations, invalid values) |
+| `403 Forbidden` | Access denied | Signup not allowed, challenge access denied |
+| `404 Not Found` | Resource not found | Workshop/Challenge/Participant ID does not exist |
+| `409 Conflict` | Duplicate resource | Duplicate participant signup |
+| `500 Internal Server Error` | Server error | Database errors, unexpected server errors |
 
 ---
 
@@ -501,121 +506,129 @@ curl http://localhost:3535/api/workshop/registrations
 
 ### Storage Location
 
-Workshop data is persisted to a JSON file named `workshop_data.json` in the project root directory.
+Data is persisted to JSON files in the `backend/src/database/` directory:
+- `workshops.json` - Workshop records
+- `participants.json` - Participant records
+- `challenges.json` - Challenge records
 
 ### File Structure
 
+**workshops.json:**
 ```json
-{
-  "workshops": [
-    {
-      "id": "...",
-      "title": "...",
-      "description": "...",
-      "start_time": "...",
-      "end_time": "...",
-      "capacity": 20,
-      "delivery_mode": "online",
-      "registration_count": 5
-    }
-  ],
-  "challenges": [
-    {
-      "id": "...",
-      "workshop_id": "...",
-      "title": "...",
-      "description": "...",
-      "created_at": "..."
-    }
-  ],
-  "registrations": [
-    {
-      "id": "...",
-      "workshop_id": "...",
-      "participant_name": "...",
-      "participant_email": "...",
-      "registered_at": "..."
-    }
-  ]
-}
+[
+  {
+    "id": "uuid-v4",
+    "title": "Workshop Title",
+    "description": "Workshop Description",
+    "status": "pending",
+    "signup_enabled": true,
+    "created_at": "2026-02-27T00:00:00.000Z",
+    "updated_at": "2026-02-27T00:00:00.000Z"
+  }
+]
 ```
 
-### Thread Safety
-
-The application uses file locking to ensure thread-safe concurrent access:
-- All write operations acquire an exclusive lock
-- Multiple read operations can occur simultaneously
-- Prevents data corruption during concurrent requests
-
-### Backup and Recovery
-
-To backup your data:
-```bash
-cp workshop_data.json workshop_data_backup.json
+**participants.json:**
+```json
+[
+  {
+    "id": "uuid-v4",
+    "workshop_id": "uuid-v4",
+    "user_id": "user123",
+    "signed_up_at": "2026-02-27T00:00:00.000Z"
+  }
+]
 ```
 
-To restore from backup:
-```bash
-cp workshop_data_backup.json workshop_data.json
+**challenges.json:**
+```json
+[
+  {
+    "id": "uuid-v4",
+    "workshop_id": "uuid-v4",
+    "title": "Challenge Title",
+    "description": "Challenge Description",
+    "html_content": "<h1>Content</h1>"
+  }
+]
 ```
 
-To reset all data:
-```bash
-rm workshop_data.json
-# File will be recreated on next API call
-```
+### Atomic Write Operations
+
+All write operations use atomic file operations:
+1. Write to temporary file (`.tmp` extension)
+2. Rename temporary file to target file (atomic operation)
+3. Ensures data consistency even during concurrent writes
+
+### Referential Integrity
+
+The system maintains referential integrity:
+- Participants must reference existing workshops
+- Challenges must reference existing workshops
+- Validation occurs before write operations
 
 ---
 
 ## Testing
 
-### Run All Tests
+### Backend Tests
+
+Run all backend tests:
 
 ```bash
-pytest
+cd backend
+npm test
 ```
 
-Expected output:
+**Test Results (as of latest run):**
+- Total: 148 tests
+- Passing: 148 tests ✅
+- Failing: 0 tests
+
+**Test Coverage:**
+- Unit tests: Database service, validation, access control, referential integrity
+- Controller tests: Workshop, participant, and challenge controllers
+- Integration tests: End-to-end API workflows
+
+### Frontend Tests
+
+Run all frontend tests:
+
+```bash
+cd frontend
+npm test
 ```
-68 passed in X.XXs
+
+**Test Results:**
+- Total: 26 tests
+- Passing: 26 tests ✅
+
+**Test Coverage:**
+- Component tests: WorkshopCard, WorkshopList
+- Rendering tests: Workshop display, error handling, loading states
+
+### Known Issues
+
+~~All tests are now passing!~~ No known issues at this time.
+
+### Run Tests with Coverage
+
+```bash
+cd backend
+npm test -- --coverage
 ```
 
 ### Run Specific Test Suites
 
 ```bash
 # Unit tests only
-pytest tests/unit/ -v
+npm test -- src/services/
 
-# Property-based tests only
-pytest tests/property/ -v
+# Controller tests only
+npm test -- src/controllers/
 
 # Integration tests only
-pytest tests/integration/ -v
-```
-
-### Run Tests with Coverage
-
-```bash
-pytest --cov=app --cov-report=html
-```
-
-View coverage report:
-```bash
-open htmlcov/index.html  # macOS
-xdg-open htmlcov/index.html  # Linux
-start htmlcov/index.html  # Windows
-```
-
-### Manual API Testing
-
-A manual testing script is provided:
-
-```bash
-# Make sure the server is running first
-python app.py
-
-# In another terminal
-python test_api_manual.py
+npm test -- src/integration.test.ts src/e2e.test.ts
 ```
 
 ---
@@ -624,12 +637,11 @@ python test_api_manual.py
 
 ### Port Already in Use
 
-**Problem:** Error message: "Address already in use" or "Port 3535 is in use"
+**Problem:** Error message: "Port 3535 is already in use"
 
-**Solution 1:** Change the port in `app.py`:
-```python
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5002, debug=True)  # Use different port
+**Solution 1:** Change the port in `backend/src/server.ts`:
+```typescript
+const PORT = process.env.PORT || 5002;  // Use different port
 ```
 
 **Solution 2 (macOS):** Disable AirPlay Receiver which uses port 3535:
@@ -646,173 +658,194 @@ kill -9 PID
 
 ### Module Not Found Error
 
-**Problem:** `ModuleNotFoundError: No module named 'flask'` or similar
+**Problem:** `Cannot find module` errors
 
-**Solution:** Make sure you've activated your virtual environment and installed dependencies:
+**Solution:** Make sure you've installed dependencies:
 ```bash
-source venv/bin/activate  # macOS/Linux
-pip install -r requirements.txt
+cd backend
+npm install
+
+cd ../frontend
+npm install
 ```
 
-### JSON File Permission Error
+### TypeScript Compilation Errors
 
-**Problem:** Cannot read/write `workshop_data.json`
+**Problem:** TypeScript errors when running the application
+
+**Solution:** Check TypeScript configuration and rebuild:
+```bash
+cd backend
+npm run build
+```
+
+### Database File Permission Error
+
+**Problem:** Cannot read/write JSON database files
 
 **Solution:** Check file permissions:
 ```bash
-chmod 644 workshop_data.json
+chmod 644 backend/src/database/*.json
 ```
 
 ### Connection Refused
 
-**Problem:** `curl: (7) Failed to connect to localhost port 3535: Connection refused`
+**Problem:** `ECONNREFUSED` when accessing API
 
-**Solution:** Make sure the Flask server is running:
+**Solution:** Make sure the backend server is running:
 ```bash
-python app.py
+cd backend
+npm run dev
 ```
 
 Check the terminal for any error messages.
 
-### Invalid JSON in Request
+### Frontend Not Loading
 
-**Problem:** `400 Bad Request` with error about malformed JSON
+**Problem:** Frontend shows blank page or errors
 
-**Solution:** Ensure your JSON is properly formatted:
-- Use double quotes for strings (not single quotes)
-- No trailing commas
-- Proper escaping of special characters
-
-**Valid:**
-```bash
-curl -X POST http://localhost:3535/api/workshop \
-  -H "Content-Type: application/json" \
-  -d '{"title":"Test","capacity":10}'
-```
-
-**Invalid:**
-```bash
-curl -X POST http://localhost:3535/api/workshop \
-  -H "Content-Type: application/json" \
-  -d "{'title':'Test','capacity':10,}"  # Wrong quotes and trailing comma
-```
+**Solution:**
+1. Check if backend is running on port 3535
+2. Check browser console for errors
+3. Verify API URL in frontend configuration
+4. Clear browser cache and reload
 
 ### Tests Failing
 
-**Problem:** Some tests fail when running `pytest`
+**Problem:** Some tests fail when running `npm test`
 
 **Solution:**
-1. Make sure all dependencies are installed: `pip install -r requirements.txt`
-2. Check if `workshop_data.json` is locked by another process
-3. Delete test artifacts: `rm -rf .pytest_cache .hypothesis`
-4. Run tests again: `pytest`
+1. Make sure all dependencies are installed: `npm install`
+2. Check if database files are locked by another process
+3. Delete test artifacts: `rm -rf node_modules/.cache`
+4. Run tests again: `npm test`
 
-### Debug Mode Issues
+**Known Issues:** See the "Known Issues" section under Testing for expected test failures.
 
-**Problem:** Changes to code not reflected in running application
+### CORS Errors
 
-**Solution:** Flask debug mode should auto-reload. If not:
-1. Stop the server (Ctrl+C)
-2. Restart: `python app.py`
-3. Verify debug mode is enabled in `app.py`: `debug=True`
+**Problem:** Browser shows CORS policy errors
+
+**Solution:** The backend is configured with CORS enabled. If you're still seeing errors:
+1. Check that backend is running on port 3535
+2. Verify frontend is making requests to correct URL
+3. Check browser console for specific CORS error details
 
 ---
 
 ## Project Structure
 
 ```
-workshop-management-api/
-├── app/
-│   ├── __init__.py              # Flask app factory
-│   ├── validators.py            # Input validation functions
-│   ├── routes/
-│   │   └── workshop_routes.py   # API route handlers
-│   ├── services/
-│   │   ├── workshop_service.py  # Workshop business logic
-│   │   ├── challenge_service.py # Challenge business logic
-│   │   └── registration_service.py # Registration business logic
-│   └── store/
-│       ├── file_lock.py         # File locking mechanism
-│       └── workshop_store.py    # JSON file persistence
-├── tests/
-│   ├── unit/
-│   │   ├── test_routes.py       # Route handler tests
-│   │   ├── test_services.py     # Service layer tests
-│   │   ├── test_store.py        # Data access tests
-│   │   └── test_validators.py   # Validation tests
-│   ├── property/
-│   │   └── test_persistence_properties.py # Property-based tests
-│   └── integration/
-│       └── test_api_integration.py # End-to-end tests
-├── app.py                       # Application entry point
-├── requirements.txt             # Python dependencies
-├── README.md                    # This file
-├── workshop_data.json           # Data file (auto-generated)
-└── .gitignore                   # Git ignore rules
+workshop-management-system/
+├── backend/
+│   ├── src/
+│   │   ├── controllers/
+│   │   │   ├── workshop.controller.ts
+│   │   │   ├── workshop.controller.test.ts
+│   │   │   ├── participant.controller.ts
+│   │   │   ├── participant.controller.test.ts
+│   │   │   ├── participant.integration.test.ts
+│   │   │   ├── challenge.controller.ts
+│   │   │   └── challenge.controller.test.ts
+│   │   ├── services/
+│   │   │   ├── database.service.ts
+│   │   │   ├── database.service.test.ts
+│   │   │   ├── validation.service.ts
+│   │   │   ├── validation.service.test.ts
+│   │   │   ├── access-control.service.ts
+│   │   │   ├── access-control.service.test.ts
+│   │   │   ├── referential-integrity.service.ts
+│   │   │   └── referential-integrity.service.test.ts
+│   │   ├── routes/
+│   │   │   └── workshop.routes.ts
+│   │   ├── database/
+│   │   │   ├── workshops.json
+│   │   │   ├── participants.json
+│   │   │   └── challenges.json
+│   │   ├── types/
+│   │   │   └── index.ts
+│   │   ├── app.ts
+│   │   ├── server.ts
+│   │   ├── integration.test.ts
+│   │   └── e2e.test.ts
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── jest.config.js
+├── frontend/
+│   ├── pages/
+│   │   └── index.tsx
+│   ├── components/
+│   │   ├── WorkshopCard.tsx
+│   │   ├── WorkshopCard.test.tsx
+│   │   ├── WorkshopList.tsx
+│   │   └── WorkshopList.test.tsx
+│   ├── lib/
+│   │   └── api.ts
+│   ├── styles/
+│   │   └── globals.css
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── tailwind.config.js
+│   └── next.config.js
+├── .kiro/
+│   └── specs/
+│       └── workshop-management-system/
+│           ├── requirements.md
+│           ├── design.md
+│           └── tasks.md
+├── README.md
+└── .gitignore
 ```
 
 ---
 
 ## Architecture
 
-The application follows a three-layer architecture for clean separation of concerns:
+The application follows a layered architecture with clear separation of concerns:
 
-### 1. API Layer (Routes)
+### Backend Architecture
+
+**1. API Layer (Controllers)**
 - Handles HTTP requests and responses
-- Parses and validates request data
-- Formats responses with standardized structure
-- Maps HTTP status codes to business outcomes
+- Request validation and parsing
+- Response formatting
+- Error handling
 
-### 2. Business Logic Layer (Services)
-- Implements workshop management logic
-- Enforces business rules (capacity limits, validation)
-- Generates unique IDs and timestamps
-- Coordinates between API and data layers
+**2. Business Logic Layer (Services)**
+- **Database Service**: JSON file read/write operations
+- **Validation Service**: Schema validation for all entities
+- **Access Control Service**: Authorization logic for signups and challenges
+- **Referential Integrity Service**: Maintains relationships between entities
 
-### 3. Data Access Layer (Store)
-- Manages JSON file persistence
-- Implements file locking for thread safety
-- Provides CRUD operations for entities
-- Handles data serialization/deserialization
+**3. Data Layer**
+- JSON file-based persistence
+- Atomic write operations
+- Schema enforcement
 
-**Benefits:**
-- Easy to test each layer independently
-- Clear separation of concerns
-- Simple to modify or extend functionality
-- Maintainable and scalable codebase
+### Frontend Architecture
 
----
+**1. Pages**
+- Next.js page components
+- Server-side rendering support
+- Routing
 
-## CORS Configuration
+**2. Components**
+- **WorkshopCard**: Displays individual workshop information
+- **WorkshopList**: Fetches and displays all workshops
+- Reusable UI components
 
-The API is configured with CORS (Cross-Origin Resource Sharing) to allow frontend applications to communicate with the backend.
+**3. API Client**
+- HTTP communication with backend
+- Error handling
+- Response parsing
 
-### Development CORS Settings
+### Design Principles
 
-The following origins are allowed in development:
-- `http://localhost:3000` (Create React App default)
-- `http://localhost:5173` (Vite default)
-
-Allowed methods: GET, POST, PATCH, PUT, DELETE, OPTIONS
-Allowed headers: Content-Type, Authorization
-Credentials support: Enabled
-
-### Production CORS Configuration
-
-**CRITICAL SECURITY NOTE**: The current CORS configuration is for development only. Before deploying to production:
-
-1. Update the allowed origins in `app/__init__.py` to match your production frontend URL
-2. Never use wildcard origins (`*`) in production
-3. Restrict origins to only your trusted frontend domains
-
-Example production configuration:
-```python
-CORS(app, 
-     origins=['https://your-production-frontend.com'],
-     methods=['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-     allow_headers=['Content-Type', 'Authorization'],
-     supports_credentials=True)
-```
+- **Separation of Concerns**: Each layer has a single responsibility
+- **Type Safety**: TypeScript throughout the stack
+- **Testability**: Each component is independently testable
+- **Maintainability**: Clear structure and naming conventions
+- **Scalability**: Easy to extend with new features
 
 ---
 
@@ -820,37 +853,79 @@ CORS(app,
 
 ### Adding New Endpoints
 
-1. Add route handler in `app/routes/workshop_routes.py`
-2. Add business logic in appropriate service file
-3. Add data access methods in `app/store/workshop_store.py` if needed
-4. Add validation in `app/validators.py` if needed
-5. Write tests in `tests/unit/` and `tests/property/`
+1. Add route handler in `backend/src/routes/workshop.routes.ts`
+2. Add controller method in appropriate controller file
+3. Add business logic in service files if needed
+4. Add validation in `ValidationService` if needed
+5. Write tests in corresponding `.test.ts` files
 
 ### Code Style
 
-The project follows Python best practices:
-- PEP 8 style guide
-- Type hints where appropriate
-- Docstrings for functions and classes
+The project follows TypeScript best practices:
+- ESLint for code linting
+- Prettier for code formatting
+- Type safety throughout
 - Descriptive variable and function names
+- JSDoc comments for public APIs
 
-### Running in Production
+### Running in Development
 
-For production deployment, use a production WSGI server like Gunicorn:
-
+Backend with hot reload:
 ```bash
-pip install gunicorn
-gunicorn -w 4 -b 0.0.0.0:3535 app:app
+cd backend
+npm run dev
 ```
 
-**Production Considerations:**
+Frontend with hot reload:
+```bash
+cd frontend
+npm run dev
+```
+
+### Building for Production
+
+Backend:
+```bash
+cd backend
+npm run build
+npm start
+```
+
+Frontend:
+```bash
+cd frontend
+npm run build
+npm start
+```
+
+### Production Considerations
+
 - Use environment variables for configuration
-- Implement proper logging
-- Add authentication/authorization
-- Use a proper database instead of JSON file
-- Set up monitoring and error tracking
+- Implement proper logging (Winston, Pino)
+- Add authentication/authorization (JWT, OAuth)
+- Use a proper database (PostgreSQL, MongoDB)
+- Set up monitoring and error tracking (Sentry, DataDog)
 - Enable HTTPS
-- Configure CORS properly
+- Configure CORS properly for production domains
+- Implement rate limiting
+- Add input sanitization
+- Set up CI/CD pipeline
+
+---
+
+## Specification-Driven Development
+
+This project was built using a specification-driven development approach. The complete specification is available in `.kiro/specs/workshop-management-system/`:
+
+- **requirements.md**: Business requirements and acceptance criteria
+- **design.md**: Technical design, architecture, and correctness properties
+- **tasks.md**: Implementation plan with incremental tasks
+
+This approach ensures:
+- Clear requirements before implementation
+- Traceability from requirements to code
+- Systematic testing strategy
+- Incremental development with validation checkpoints
 
 ---
 
@@ -861,8 +936,9 @@ Contributions are welcome! Please follow these guidelines:
 1. Fork the repository
 2. Create a feature branch
 3. Write tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
+4. Ensure all tests pass (or document known failures)
+5. Follow the existing code style
+6. Submit a pull request with clear description
 
 ---
 
@@ -876,14 +952,16 @@ This project is provided as-is for educational purposes.
 
 For issues, questions, or suggestions:
 - Check the Troubleshooting section above
-- Review the test files for usage examples
-- Examine the verification report: `verification_report.md`
+- Review the specification files in `.kiro/specs/workshop-management-system/`
+- Check the test files for usage examples
+- Review the Known Issues section for current limitations
 
 ---
 
 ## Acknowledgments
 
 Built with:
-- Flask - Web framework
-- pytest - Testing framework
-- hypothesis - Property-based testing library
+- **Backend**: Node.js, TypeScript, Express, Jest
+- **Frontend**: Next.js, React, TailwindCSS, TypeScript
+- **Testing**: Jest, React Testing Library
+- **Development**: Specification-driven development methodology

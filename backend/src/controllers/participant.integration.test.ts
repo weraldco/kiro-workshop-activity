@@ -67,7 +67,7 @@ describe('Participant API Integration Tests', () => {
       DatabaseService.writeWorkshops([completedWorkshop]);
 
       const response = await request(app)
-        .post(`/api/workshops/${testWorkshop.id}/signup`)
+        .post(`/api/workshops/${completedWorkshop.id}/signup`)
         .send({ user_id: 'test-user-123' })
         .expect(403);
 

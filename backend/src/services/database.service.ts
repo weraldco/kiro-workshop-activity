@@ -7,6 +7,11 @@ const WORKSHOPS_FILE = path.join(DB_DIR, 'workshops.json');
 const PARTICIPANTS_FILE = path.join(DB_DIR, 'participants.json');
 const CHALLENGES_FILE = path.join(DB_DIR, 'challenges.json');
 
+// Ensure database directory exists
+if (!fs.existsSync(DB_DIR)) {
+  fs.mkdirSync(DB_DIR, { recursive: true });
+}
+
 interface WorkshopsData {
   workshops: Workshop[];
 }

@@ -14,6 +14,13 @@ describe('API Integration - All Endpoints Accessible', () => {
     DatabaseService.writeChallenges([]);
   });
 
+  afterAll(() => {
+    // Clean up after all tests
+    DatabaseService.writeWorkshops([]);
+    DatabaseService.writeParticipants([]);
+    DatabaseService.writeChallenges([]);
+  });
+
   describe('Workshop Endpoints', () => {
     it('POST /api/workshops should be accessible', async () => {
       const response = await request(app)
@@ -31,7 +38,7 @@ describe('API Integration - All Endpoints Accessible', () => {
       const response = await request(app).get('/api/workshops');
       
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('workshops');
+      expect(Array.isArray(response.body)).toBe(true);
     });
 
     it('PATCH /api/workshops/:id/status should be accessible', async () => {

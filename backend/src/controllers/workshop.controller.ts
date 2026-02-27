@@ -96,6 +96,7 @@ export class WorkshopController {
   static async listWorkshops(_req: Request, res: Response): Promise<void> {
     try {
       const workshops = DatabaseService.readWorkshops();
+      // Return array directly for simpler API (matches design document)
       res.status(200).json(workshops);
     } catch (error) {
       const errorResponse: ErrorResponse = {

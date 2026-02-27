@@ -18,5 +18,6 @@ module.exports = {
     }
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  verbose: true
+  verbose: true,
+  maxWorkers: 1  // Run tests serially to avoid database conflicts
 };
