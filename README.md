@@ -783,6 +783,39 @@ The application follows a three-layer architecture for clean separation of conce
 
 ---
 
+## CORS Configuration
+
+The API is configured with CORS (Cross-Origin Resource Sharing) to allow frontend applications to communicate with the backend.
+
+### Development CORS Settings
+
+The following origins are allowed in development:
+- `http://localhost:3000` (Create React App default)
+- `http://localhost:5173` (Vite default)
+
+Allowed methods: GET, POST, PATCH, PUT, DELETE, OPTIONS
+Allowed headers: Content-Type, Authorization
+Credentials support: Enabled
+
+### Production CORS Configuration
+
+**CRITICAL SECURITY NOTE**: The current CORS configuration is for development only. Before deploying to production:
+
+1. Update the allowed origins in `app/__init__.py` to match your production frontend URL
+2. Never use wildcard origins (`*`) in production
+3. Restrict origins to only your trusted frontend domains
+
+Example production configuration:
+```python
+CORS(app, 
+     origins=['https://your-production-frontend.com'],
+     methods=['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+     allow_headers=['Content-Type', 'Authorization'],
+     supports_credentials=True)
+```
+
+---
+
 ## Development
 
 ### Adding New Endpoints

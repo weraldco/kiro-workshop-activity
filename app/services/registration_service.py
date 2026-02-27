@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from typing import Optional, Tuple
 
 from app.store.workshop_store import WorkshopStore
+from app.validators import validate_email_format
 
 
 class RegistrationService:
@@ -47,13 +48,32 @@ class RegistrationService:
             If successful: (registration_dict, "")
             If failed: (None, error_message)
         """
-        # Get the workshop
+        # Get the workshop (first check - 404 if not exists)
         workshop = self.store.get_workshop(workshop_id)
         
         if workshop is None:
             return None, f"Workshop with ID '{workshop_id}' does not exist"
         
-        # Check capacity
+        # Validate email format (after workshop exists check)
+        participant_email = data.get('participant_email', '')
+        is_valid, error_msg = validate_email_format(participant_email)
+        if not is_valid:
+            return None, error_msg
+        
+        # Check signup_enabled (second validation after workshop exists)
+        signup_enabled = workshop.get('signup_enabled', True)
+        if not signup_enabled:
+            return None, "Signups are currently disabled for this workshop"
+        
+        # Check status (third validation - after signup_enabled, before capacity)
+        status = workshop.get('status', 'pending')
+        if status == 'ongoing':
+            return None, "Signups are closed for ongoing workshops"
+        elif status == 'completed':
+            return None, "Signups are closed for completed workshops"
+        # Only allow registration when status is "pending"
+        
+        # Check capacity (fourth validation)
         current_count = workshop.get('registration_count', 0)
         capacity = workshop['capacity']
         
@@ -102,3 +122,15 @@ class RegistrationService:
         """
         registrations = self.store.get_registrations_for_workshop(workshop_id)
         return len(registrations)
+    
+    def get_registrations_for_workshop(self, workshop_id: str) -> list[dict]:
+        """
+        Get all registrations for a workshop.
+        
+        Args:
+            workshop_id: Unique identifier of the workshop
+        
+        Returns:
+            List of registration objects for the workshop
+        """
+        return self.store.get_registrations_for_workshop(workshop_id)

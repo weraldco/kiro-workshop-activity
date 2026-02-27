@@ -19,6 +19,30 @@
       "capacity": 20,
       "delivery_mode": "online",
       "registration_count": 0
+    },
+    {
+      "id": "d86df9a9-65b5-4bb3-9ab4-f2f75b842425",
+      "title": "Test Workshop",
+      "description": "Test description",
+      "start_time": "2024-12-01T10:00:00",
+      "end_time": "2024-12-01T12:00:00",
+      "capacity": 10,
+      "delivery_mode": "online",
+      "registration_count": 0,
+      "status": "ongoing",
+      "signup_enabled": false
+    },
+    {
+      "id": "1cb1114a-d0d2-4ebb-b217-b4c3f68b114d",
+      "title": "Python Workshop",
+      "description": "Learn Python basics",
+      "start_time": "2026-02-27T21:43:11.103778",
+      "end_time": "2026-02-27T23:43:11.103778",
+      "capacity": 10,
+      "delivery_mode": "online",
+      "registration_count": 1,
+      "status": "completed",
+      "signup_enabled": true
     }
   ],
   "challenges": [
@@ -28,6 +52,14 @@
       "title": "Build a Calculator",
       "description": "Create a simple calculator app",
       "created_at": "2026-02-26T12:05:45.790573+00:00"
+    },
+    {
+      "id": "8569feb9-3ffb-430f-bd3c-48a895c316d3",
+      "workshop_id": "1cb1114a-d0d2-4ebb-b217-b4c3f68b114d",
+      "title": "Build a Calculator",
+      "description": "Create a simple calculator",
+      "html_content": "<h1>Calculator Challenge</h1><p>Build a calculator with basic operations.</p>",
+      "created_at": "2026-02-26T13:43:11.115141+00:00"
     }
   ],
   "registrations": [
@@ -37,6 +69,13 @@
       "participant_name": "John Doe",
       "participant_email": "john@example.com",
       "registered_at": "2026-02-26T12:05:45.793035+00:00"
+    },
+    {
+      "id": "5caf4181-1a4b-475f-937c-df49c0659401",
+      "workshop_id": "1cb1114a-d0d2-4ebb-b217-b4c3f68b114d",
+      "participant_name": "Alice Smith",
+      "participant_email": "alice@example.com",
+      "registered_at": "2026-02-26T13:43:11.118379+00:00"
     }
   ]
 }

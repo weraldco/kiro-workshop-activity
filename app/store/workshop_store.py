@@ -97,9 +97,17 @@ class WorkshopStore:
         """
         Add a workshop to the store.
         
+        Applies default values for status and signup_enabled if not present.
+        
         Args:
             workshop: Workshop dictionary with all required fields
         """
+        # Apply defaults for new fields if not present
+        if 'status' not in workshop:
+            workshop['status'] = 'pending'
+        if 'signup_enabled' not in workshop:
+            workshop['signup_enabled'] = True
+        
         data = self.load_data()
         data['workshops'].append(workshop)
         self.save_data(data)
@@ -107,6 +115,9 @@ class WorkshopStore:
     def get_workshop(self, workshop_id: str) -> Optional[dict]:
         """
         Retrieve a workshop by ID.
+        
+        Applies default values for status and signup_enabled if not present
+        (backward compatibility with old data format).
         
         Args:
             workshop_id: Unique identifier of the workshop
@@ -117,6 +128,11 @@ class WorkshopStore:
         data = self.load_data()
         for workshop in data['workshops']:
             if workshop['id'] == workshop_id:
+                # Apply defaults for backward compatibility
+                if 'status' not in workshop:
+                    workshop['status'] = 'pending'
+                if 'signup_enabled' not in workshop:
+                    workshop['signup_enabled'] = True
                 return workshop
         return None
     
@@ -124,19 +140,40 @@ class WorkshopStore:
         """
         Retrieve all workshops.
         
+        Applies default values for status and signup_enabled if not present
+        (backward compatibility with old data format).
+        
         Returns:
             List of workshop dictionaries
         """
         data = self.load_data()
-        return data['workshops']
+        workshops = data['workshops']
+        
+        # Apply defaults for backward compatibility
+        for workshop in workshops:
+            if 'status' not in workshop:
+                workshop['status'] = 'pending'
+            if 'signup_enabled' not in workshop:
+                workshop['signup_enabled'] = True
+        
+        return workshops
     
     def add_challenge(self, challenge: dict) -> None:
         """
         Add a challenge to the store.
         
+        Validates that html_content field is present and is a string.
+        
         Args:
             challenge: Challenge dictionary with all required fields
+        
+        Raises:
+            ValueError: If html_content is not a string
         """
+        # Validate html_content field
+        if 'html_content' in challenge and not isinstance(challenge['html_content'], str):
+            raise ValueError("html_content must be a string")
+        
         data = self.load_data()
         data['challenges'].append(challenge)
         self.save_data(data)
@@ -193,10 +230,17 @@ class WorkshopStore:
         Update an existing workshop in the store.
         
         Finds the workshop by ID and replaces it with the updated version.
+        Ensures default values for status and signup_enabled are applied.
         
         Args:
             workshop: Workshop dictionary with updated fields
         """
+        # Apply defaults for new fields if not present
+        if 'status' not in workshop:
+            workshop['status'] = 'pending'
+        if 'signup_enabled' not in workshop:
+            workshop['signup_enabled'] = True
+        
         data = self.load_data()
         
         # Find and update the workshop

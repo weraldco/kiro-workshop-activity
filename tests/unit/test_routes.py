@@ -193,7 +193,8 @@ def test_create_challenge_success(client):
     # Create challenge
     challenge_data = {
         'title': 'Build a REST API',
-        'description': 'Create a simple REST API using Flask'
+        'description': 'Create a simple REST API using Flask',
+        'html_content': '<p>Challenge instructions</p>'
     }
     response = client.post(f'/api/workshop/{workshop_id}/challenge',
                           data=json.dumps(challenge_data),

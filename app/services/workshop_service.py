@@ -96,6 +96,15 @@ class WorkshopService:
         """
         return self.store.get_workshop(workshop_id) is not None
     
+    def update_workshop(self, workshop: dict) -> None:
+        """
+        Update an existing workshop.
+        
+        Args:
+            workshop: Workshop dictionary with updated fields
+        """
+        self.store.update_workshop(workshop)
+    
     def _ensure_iso8601(self, timestamp: str) -> str:
         """
         Ensure timestamp is in ISO 8601 format.

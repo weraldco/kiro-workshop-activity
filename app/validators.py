@@ -113,6 +113,8 @@ def validate_challenge_data(data: dict) -> tuple[bool, str]:
     
     Validates:
     - title: non-empty string
+    - description: string (required)
+    - html_content: string (required, including empty string)
     
     Args:
         data: Dictionary containing challenge data
@@ -121,8 +123,11 @@ def validate_challenge_data(data: dict) -> tuple[bool, str]:
         (is_valid, error_message): Tuple with validation result and error message
     """
     # Check for required fields
-    if 'title' not in data:
-        return False, "Missing required field: title"
+    required_fields = ['title', 'description', 'html_content']
+    missing_fields = [field for field in required_fields if field not in data]
+    
+    if missing_fields:
+        return False, f"Missing required fields: {', '.join(missing_fields)}"
     
     # Validate title
     title = data.get('title')
@@ -130,6 +135,17 @@ def validate_challenge_data(data: dict) -> tuple[bool, str]:
         return False, "Title must be a string"
     if not title or not title.strip():
         return False, "Title must be a non-empty string"
+    
+    # Validate description
+    description = data.get('description')
+    if not isinstance(description, str):
+        return False, "Description must be a string"
+    
+    # Validate html_content
+    html_content = data.get('html_content')
+    is_valid, error_message = validate_html_content(html_content)
+    if not is_valid:
+        return False, error_message
     
     return True, ""
 
@@ -153,5 +169,87 @@ def validate_registration_data(data: dict) -> tuple[bool, str]:
     
     if missing_fields:
         return False, f"Missing required fields: {', '.join(missing_fields)}"
+    
+    return True, ""
+
+
+def validate_status(status: Any) -> tuple[bool, str]:
+    """
+    Validates workshop status is one of: pending, ongoing, completed.
+    
+    Args:
+        status: The status value to validate
+        
+    Returns:
+        (is_valid, error_message): Tuple with validation result and error message
+    """
+    if not isinstance(status, str):
+        return False, "Status must be one of: pending, ongoing, completed"
+    
+    if status not in ["pending", "ongoing", "completed"]:
+        return False, "Status must be one of: pending, ongoing, completed"
+    
+    return True, ""
+
+
+def validate_signup_enabled(signup_enabled: Any) -> tuple[bool, str]:
+    """
+    Validates signup_enabled is a boolean value.
+    
+    Args:
+        signup_enabled: The signup_enabled value to validate
+        
+    Returns:
+        (is_valid, error_message): Tuple with validation result and error message
+    """
+    if not isinstance(signup_enabled, bool):
+        return False, "signup_enabled must be a boolean value"
+    
+    return True, ""
+
+
+def validate_html_content(html_content: Any) -> tuple[bool, str]:
+    """
+    Validates html_content is a string (including empty string).
+    Includes maximum length validation (50KB) to prevent DoS attacks.
+    
+    Args:
+        html_content: The html_content value to validate
+        
+    Returns:
+        (is_valid, error_message): Tuple with validation result and error message
+    """
+    if not isinstance(html_content, str):
+        return False, "html_content must be a string"
+    
+    # Maximum length: 50KB (50 * 1024 bytes)
+    max_length = 50 * 1024
+    if len(html_content.encode('utf-8')) > max_length:
+        return False, f"html_content must not exceed {max_length} bytes (50KB)"
+    
+    return True, ""
+
+
+def validate_email_format(email: Any) -> tuple[bool, str]:
+    """
+    Validates email format using basic regex pattern.
+    
+    Args:
+        email: The email address to validate
+        
+    Returns:
+        (is_valid, error_message): Tuple with validation result and error message
+    """
+    import re
+    
+    if not isinstance(email, str):
+        return False, "Email must be a string"
+    
+    # Basic email regex pattern
+    # Matches: local-part@domain.tld
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    
+    if not re.match(email_pattern, email):
+        return False, "Invalid email format"
     
     return True, ""

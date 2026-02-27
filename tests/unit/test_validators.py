@@ -9,7 +9,11 @@ from app.validators import (
     validate_time_range,
     validate_workshop_data,
     validate_challenge_data,
-    validate_registration_data
+    validate_registration_data,
+    validate_status,
+    validate_signup_enabled,
+    validate_html_content,
+    validate_email_format
 )
 
 
@@ -188,7 +192,8 @@ class TestChallengeDataValidation:
         """Test that valid challenge data is accepted."""
         data = {
             'title': 'Build a REST API',
-            'description': 'Create a simple REST API'
+            'description': 'Create a simple REST API',
+            'html_content': '<p>Challenge content</p>'
         }
         is_valid, error = validate_challenge_data(data)
         assert is_valid is True
@@ -196,28 +201,43 @@ class TestChallengeDataValidation:
     
     def test_missing_title(self):
         """Test that missing title is detected."""
-        data = {'description': 'Some description'}
+        data = {
+            'description': 'Some description',
+            'html_content': '<p>Content</p>'
+        }
         is_valid, error = validate_challenge_data(data)
         assert is_valid is False
         assert "title" in error.lower()
     
     def test_empty_title(self):
         """Test that empty title is rejected."""
-        data = {'title': ''}
+        data = {
+            'title': '',
+            'description': 'Some description',
+            'html_content': '<p>Content</p>'
+        }
         is_valid, error = validate_challenge_data(data)
         assert is_valid is False
         assert "non-empty" in error.lower()
     
     def test_whitespace_only_title(self):
         """Test that whitespace-only title is rejected."""
-        data = {'title': '   '}
+        data = {
+            'title': '   ',
+            'description': 'Some description',
+            'html_content': '<p>Content</p>'
+        }
         is_valid, error = validate_challenge_data(data)
         assert is_valid is False
         assert "non-empty" in error.lower()
     
     def test_invalid_title_type(self):
         """Test that non-string title is rejected."""
-        data = {'title': 123}
+        data = {
+            'title': 123,
+            'description': 'Some description',
+            'html_content': '<p>Content</p>'
+        }
         is_valid, error = validate_challenge_data(data)
         assert is_valid is False
         assert "string" in error.lower()
@@ -256,3 +276,180 @@ class TestRegistrationDataValidation:
         is_valid, error = validate_registration_data(data)
         assert is_valid is False
         assert "missing required fields" in error.lower()
+
+
+
+class TestStatusValidation:
+    """Tests for status validation."""
+    
+    def test_valid_status_values(self):
+        """Test that valid status values are accepted."""
+        is_valid, error = validate_status("pending")
+        assert is_valid is True
+        assert error == ""
+        
+        is_valid, error = validate_status("ongoing")
+        assert is_valid is True
+        assert error == ""
+        
+        is_valid, error = validate_status("completed")
+        assert is_valid is True
+        assert error == ""
+    
+    def test_invalid_status_string(self):
+        """Test that invalid status strings are rejected."""
+        is_valid, error = validate_status("active")
+        assert is_valid is False
+        assert "pending, ongoing, completed" in error
+        
+        is_valid, error = validate_status("finished")
+        assert is_valid is False
+        assert "pending, ongoing, completed" in error
+        
+        is_valid, error = validate_status("")
+        assert is_valid is False
+        assert "pending, ongoing, completed" in error
+    
+    def test_invalid_status_type(self):
+        """Test that non-string status values are rejected."""
+        is_valid, error = validate_status(123)
+        assert is_valid is False
+        assert "pending, ongoing, completed" in error
+        
+        is_valid, error = validate_status(None)
+        assert is_valid is False
+        assert "pending, ongoing, completed" in error
+        
+        is_valid, error = validate_status(["pending"])
+        assert is_valid is False
+        assert "pending, ongoing, completed" in error
+
+
+class TestSignupEnabledValidation:
+    """Tests for signup_enabled validation."""
+    
+    def test_valid_signup_enabled_values(self):
+        """Test that boolean values are accepted."""
+        is_valid, error = validate_signup_enabled(True)
+        assert is_valid is True
+        assert error == ""
+        
+        is_valid, error = validate_signup_enabled(False)
+        assert is_valid is True
+        assert error == ""
+    
+    def test_invalid_signup_enabled_type(self):
+        """Test that non-boolean values are rejected."""
+        is_valid, error = validate_signup_enabled("true")
+        assert is_valid is False
+        assert "boolean" in error.lower()
+        
+        is_valid, error = validate_signup_enabled(1)
+        assert is_valid is False
+        assert "boolean" in error.lower()
+        
+        is_valid, error = validate_signup_enabled(0)
+        assert is_valid is False
+        assert "boolean" in error.lower()
+        
+        is_valid, error = validate_signup_enabled(None)
+        assert is_valid is False
+        assert "boolean" in error.lower()
+
+
+class TestHtmlContentValidation:
+    """Tests for html_content validation."""
+    
+    def test_valid_html_content_string(self):
+        """Test that string values are accepted."""
+        is_valid, error = validate_html_content("<p>Hello</p>")
+        assert is_valid is True
+        assert error == ""
+        
+        is_valid, error = validate_html_content("<div><h1>Title</h1><p>Content</p></div>")
+        assert is_valid is True
+        assert error == ""
+    
+    def test_valid_empty_html_content(self):
+        """Test that empty string is accepted."""
+        is_valid, error = validate_html_content("")
+        assert is_valid is True
+        assert error == ""
+    
+    def test_invalid_html_content_type(self):
+        """Test that non-string values are rejected."""
+        is_valid, error = validate_html_content(123)
+        assert is_valid is False
+        assert "string" in error.lower()
+        
+        is_valid, error = validate_html_content(None)
+        assert is_valid is False
+        assert "string" in error.lower()
+        
+        is_valid, error = validate_html_content(["<p>Hello</p>"])
+        assert is_valid is False
+        assert "string" in error.lower()
+    
+    def test_html_content_max_length(self):
+        """Test that content exceeding 50KB is rejected."""
+        # Create content just under 50KB
+        small_content = "a" * (50 * 1024 - 1)
+        is_valid, error = validate_html_content(small_content)
+        assert is_valid is True
+        assert error == ""
+        
+        # Create content exceeding 50KB
+        large_content = "a" * (50 * 1024 + 1)
+        is_valid, error = validate_html_content(large_content)
+        assert is_valid is False
+        assert "50KB" in error or "50" in error
+
+
+class TestEmailFormatValidation:
+    """Tests for email format validation."""
+    
+    def test_valid_email_formats(self):
+        """Test that valid email formats are accepted."""
+        is_valid, error = validate_email_format("user@example.com")
+        assert is_valid is True
+        assert error == ""
+        
+        is_valid, error = validate_email_format("john.doe@company.co.uk")
+        assert is_valid is True
+        assert error == ""
+        
+        is_valid, error = validate_email_format("test+tag@domain.org")
+        assert is_valid is True
+        assert error == ""
+    
+    def test_invalid_email_formats(self):
+        """Test that invalid email formats are rejected."""
+        is_valid, error = validate_email_format("invalid")
+        assert is_valid is False
+        assert "email" in error.lower()
+        
+        is_valid, error = validate_email_format("@example.com")
+        assert is_valid is False
+        assert "email" in error.lower()
+        
+        is_valid, error = validate_email_format("user@")
+        assert is_valid is False
+        assert "email" in error.lower()
+        
+        is_valid, error = validate_email_format("user@domain")
+        assert is_valid is False
+        assert "email" in error.lower()
+        
+        is_valid, error = validate_email_format("")
+        assert is_valid is False
+        assert "email" in error.lower()
+    
+    def test_invalid_email_type(self):
+        """Test that non-string email values are rejected."""
+        is_valid, error = validate_email_format(123)
+        assert is_valid is False
+        assert "string" in error.lower()
+        
+        is_valid, error = validate_email_format(None)
+        assert is_valid is False
+        assert "string" in error.lower()

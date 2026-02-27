@@ -3,6 +3,7 @@ Workshop Management API - Flask Application Initialization
 """
 import os
 from flask import Flask, jsonify
+from flask_cors import CORS
 
 
 def create_app(config=None):
@@ -26,6 +27,15 @@ def create_app(config=None):
     # Override with custom config if provided
     if config:
         app.config.update(config)
+    
+    # Configure CORS for frontend communication
+    # SECURITY NOTE: Update origins for production deployment
+    # Development origins allow common frontend dev server ports
+    CORS(app, 
+         origins=['http://localhost:3000', 'http://localhost:5173'],
+         methods=['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+         allow_headers=['Content-Type', 'Authorization'],
+         supports_credentials=True)
     
     # Register error handlers
     @app.errorhandler(400)

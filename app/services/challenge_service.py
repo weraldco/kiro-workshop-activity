@@ -37,7 +37,7 @@ class ChallengeService:
         
         Args:
             workshop_id: ID of the workshop this challenge belongs to
-            data: Challenge data containing title and description
+            data: Challenge data containing title, description, and html_content
         
         Returns:
             Challenge object with generated ID and timestamp
@@ -51,6 +51,7 @@ class ChallengeService:
             'workshop_id': workshop_id,
             'title': data['title'],
             'description': data.get('description', ''),
+            'html_content': data.get('html_content', ''),
             'created_at': datetime.now(timezone.utc).isoformat()
         }
         
@@ -60,6 +61,18 @@ class ChallengeService:
         return challenge
     
     def list_challenges(self, workshop_id: str) -> list[dict]:
+        """
+        Retrieve all challenges for a workshop.
+        
+        Args:
+            workshop_id: Unique identifier of the workshop
+        
+        Returns:
+            List of challenge objects for the specified workshop
+        """
+        return self.store.get_challenges(workshop_id)
+    
+    def get_challenges(self, workshop_id: str) -> list[dict]:
         """
         Retrieve all challenges for a workshop.
         
