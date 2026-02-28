@@ -17,8 +17,10 @@ interface WorkshopCardProps {
  * with status-specific styling and signup availability indicator
  */
 export default function WorkshopCard({ workshop }: WorkshopCardProps) {
+  const { status, signup_enabled } = workshop;
+
   // Determine status-specific styling
-  const getStatusStyles = (status: Workshop['status']) => {
+  const getStatusStyles = (status: string) => {
     switch (status) {
       case 'pending':
         return 'bg-blue-100 text-blue-800 border-blue-300';
@@ -31,7 +33,7 @@ export default function WorkshopCard({ workshop }: WorkshopCardProps) {
     }
   };
 
-  const statusStyles = getStatusStyles(workshop.status);
+  const statusStyles = getStatusStyles(status);
 
   return (
     <div className="border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
@@ -51,11 +53,11 @@ export default function WorkshopCard({ workshop }: WorkshopCardProps) {
         <span
           className={`px-3 py-1 rounded-full text-sm font-medium border ${statusStyles}`}
         >
-          {workshop.status.charAt(0).toUpperCase() + workshop.status.slice(1)}
+          {status.charAt(0).toUpperCase() + status.slice(1)}
         </span>
 
         {/* Signup Availability Indicator */}
-        {workshop.signup_enabled && workshop.status === 'pending' && (
+        {signup_enabled && status === 'pending' && (
           <span className="text-sm text-green-600 font-medium flex items-center gap-1">
             <svg
               className="w-4 h-4"
@@ -73,7 +75,7 @@ export default function WorkshopCard({ workshop }: WorkshopCardProps) {
           </span>
         )}
 
-        {(!workshop.signup_enabled || workshop.status !== 'pending') && (
+        {(!signup_enabled || status !== 'pending') && (
           <span className="text-sm text-gray-500 font-medium flex items-center gap-1">
             <svg
               className="w-4 h-4"

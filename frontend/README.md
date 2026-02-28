@@ -1,53 +1,99 @@
 # Workshop Management System - Frontend
 
-Frontend application for the Workshop Management System built with Next.js and TailwindCSS.
+Next.js frontend application for the Workshop Management System.
+
+## Setup
+
+```bash
+# Install dependencies
+npm install
+```
+
+## Running
+
+```bash
+# Development mode (with hot reload)
+npm run dev
+
+# Production build
+npm run build
+npm start
+```
+
+The frontend will be available at `http://localhost:3000`
+
+## Testing
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm test -- --watch
+
+# Run tests with coverage
+npm test -- --coverage
+```
+
+## Features
+
+- Workshop listing with real-time updates
+- Status badges (pending, ongoing, completed)
+- Signup availability indicators
+- Responsive design with TailwindCSS
+- Error handling and loading states
+- API integration with retry logic
 
 ## Project Structure
 
 ```
 frontend/
-├── pages/              # Next.js pages
-├── components/         # React components
-├── lib/               # Utility functions and API client
+├── pages/
+│   └── index.tsx        # Main page
+├── components/
+│   ├── WorkshopCard.tsx      # Individual workshop display
+│   ├── WorkshopCard.test.tsx
+│   ├── WorkshopList.tsx      # Workshop list container
+│   └── WorkshopList.test.tsx
+├── lib/
+│   └── api.ts           # API client with error handling
+├── styles/
+│   └── globals.css      # Global styles
+├── public/              # Static assets
 ├── package.json
 ├── tsconfig.json
 ├── tailwind.config.js
-└── jest.config.js
+└── next.config.js
 ```
 
-## Setup
+## API Configuration
 
-1. Install dependencies:
-```bash
-npm install
-```
+The frontend connects to the backend API at `http://localhost:3535/api`
 
-2. Run development server:
-```bash
-npm run dev
-```
-
-3. Build for production:
-```bash
-npm run build
-```
-
-4. Run tests:
-```bash
-npm test
-```
-
-## Features
-
-- Workshop listing display
-- Status-based styling
-- Signup availability indicators
-- Error handling and loading states
-- Responsive design with TailwindCSS
+This is configured in `next.config.js` as a proxy to avoid CORS issues during development.
 
 ## Environment Variables
 
-Create a `.env.local` file:
+Create a `.env.local` file for custom configuration:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3535
 ```
-NEXT_PUBLIC_API_URL=http://localhost:3001
+
+## Building for Production
+
+```bash
+# Build optimized production bundle
+npm run build
+
+# Start production server
+npm start
 ```
+
+## Technologies
+
+- Next.js 13+
+- React 18+
+- TypeScript
+- TailwindCSS
+- Jest & React Testing Library

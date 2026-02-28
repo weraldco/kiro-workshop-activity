@@ -1,109 +1,193 @@
-# Workshop Management API - Quick Start Guide
+# Quick Start Guide
 
-## 🚀 Get Started in 3 Steps
+## Prerequisites
 
-### 1. Install Dependencies
+- Python 3.8+
+- Node.js 14+
+- MySQL 8.0+
+
+## Setup (5 minutes)
+
+### 1. Database Setup
 
 ```bash
+# Create MySQL database and user
+mysql -u root -p
+
+CREATE DATABASE workshop_management;
+CREATE USER 'workshop_user'@'localhost' IDENTIFIED BY 'password1';
+GRANT ALL PRIVILEGES ON workshop_management.* TO 'workshop_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+### 2. Backend Setup
+
+```bash
+cd backend
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Create .env file
+cat > .env << EOF
+JWT_SECRET_KEY=your-super-secret-key-change-this-in-production
+JWT_EXPIRATION_MINUTES=30
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=workshop_management
+DB_USER=workshop_user
+DB_PASSWORD=password1
+EOF
+
+# Initialize database
+python init_db.py
+
+# Run tests (optional)
+pytest
+
+# Start server
+python run.py
 ```
 
-### 2. Start the Server
+Backend will run on http://localhost:3535
+
+### 3. Frontend Setup
 
 ```bash
-python app.py
+cd frontend
+
+# Install dependencies
+npm install
+
+# Create .env.local file
+cat > .env.local << EOF
+NEXT_PUBLIC_API_URL=http://localhost:3535
+EOF
+
+# Start development server
+npm run dev
 ```
 
-Server runs at: `http://localhost:3535`
+Frontend will run on http://localhost:3000
 
-### 3. Test the API
+## Test the Application
 
+### 1. Register a User
+- Visit http://localhost:3000/auth/signup
+- Enter name, email, password
+- Click "Sign up"
+
+### 2. Create a Workshop
+- You'll be redirected to dashboard
+- Click "Create Workshop"
+- Enter title and description
+- Click "Create Workshop"
+
+### 3. Join a Workshop (with second user)
+- Open incognito window
+- Register another user
+- Visit http://localhost:3000/workshops
+- Click "Join" on a workshop
+- Request will be pending
+
+### 4. Approve Join Request
+- Switch back to first user
+- Click "Manage" on your workshop
+- See pending request
+- Click "Approve"
+
+### 5. Verify Participant Joined
+- Participant appears in "Participants" section
+- Second user sees workshop in "Joined Workshops"
+
+## Common Issues
+
+### Backend won't start
+- Check MySQL is running: `mysql -u workshop_user -p`
+- Verify database exists: `SHOW DATABASES;`
+- Check .env file has correct credentials
+
+### Frontend can't connect to backend
+- Verify backend is running on port 3535
+- Check .env.local has correct API URL
+- Check browser console for CORS errors
+
+### Tests failing
+- Ensure test database is clean: `python init_db.py`
+- Check all dependencies installed: `pip install -r requirements.txt`
+
+## Default Ports
+
+- Backend: 3535
+- Frontend: 3000
+- MySQL: 3306
+
+## API Testing with curl
+
+### Register User
 ```bash
-# Create a workshop
-curl -X POST http://localhost:3535/api/workshop \
+curl -X POST http://localhost:3535/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "Python Workshop",
-    "description": "Learn Python basics",
-    "start_time": "2024-03-01T10:00:00",
-    "end_time": "2024-03-01T16:00:00",
-    "capacity": 20,
-    "delivery_mode": "online"
+    "email": "test@example.com",
+    "password": "Test123!@#",
+    "name": "Test User"
   }'
-
-# List all workshops
-curl http://localhost:3535/api/workshop
 ```
 
-## 📚 Full Documentation
-
-See [README.md](README.md) for complete documentation including:
-- All API endpoints with examples
-- Validation rules
-- Error handling
-- Testing instructions
-- Troubleshooting guide
-- Architecture overview
-
-## 🧪 Run Tests
-
+### Login
 ```bash
-pytest
+curl -X POST http://localhost:3535/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "Test123!@#"
+  }'
 ```
 
-Expected: 68 tests pass
-
-## 🔧 Common Issues
-
-**Port in use?** Change port in `app.py`:
-```python
-app.run(host='0.0.0.0', port=5002, debug=True)
-```
-
-**Module not found?** Install dependencies:
+### Create Workshop (replace TOKEN)
 ```bash
-pip install -r requirements.txt
+curl -X POST http://localhost:3535/api/workshops \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "title": "My Workshop",
+    "description": "Workshop description"
+  }'
 ```
 
-## 📖 API Endpoints
+## Next Steps
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/workshop` | Create workshop |
-| GET | `/api/workshop` | List all workshops |
-| GET | `/api/workshop/{id}` | Get specific workshop |
-| POST | `/api/workshop/{id}/challenge` | Create challenge |
-| POST | `/api/workshop/{id}/register` | Register participant |
-| GET | `/api/workshop/registrations` | List registrations |
+1. Read `PROJECT_COMPLETE.md` for full feature list
+2. Check `IMPLEMENTATION_CHECKLIST.md` for development details
+3. Review API endpoints in backend route files
+4. Explore the codebase and customize as needed
 
-## ✅ Response Format
+## Production Deployment
 
-All responses use this format:
+Before deploying to production:
 
-**Success:**
-```json
-{
-  "success": true,
-  "data": { ... }
-}
-```
+1. Change JWT_SECRET_KEY to a strong random value
+2. Use production database credentials
+3. Enable HTTPS
+4. Update CORS origins
+5. Set up proper logging
+6. Configure rate limiting
+7. Set up monitoring and backups
 
-**Error:**
-```json
-{
-  "success": false,
-  "error": "Error message",
-  "data": {}
-}
-```
+See `PROJECT_COMPLETE.md` for full deployment checklist.
 
-## 💾 Data Storage
+## Support
 
-Data is stored in `workshop_data.json` (auto-created)
+For issues or questions:
+1. Check the documentation files
+2. Review the code comments
+3. Check the test files for usage examples
+4. Review the API endpoint documentation in route files
 
-## 🎯 Next Steps
-
-1. Read the full [README.md](README.md)
-2. Check [verification_report.md](verification_report.md) for test results
-3. Explore the code in `app/` directory
-4. Run the test suite with `pytest`
+Happy coding! 🚀

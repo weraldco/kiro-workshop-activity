@@ -1,12 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // API proxy configuration (if needed)
+  // API proxy configuration - proxies to Python Flask backend
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:3001/api/:path*', // Backend API URL
+        destination: 'http://localhost:3535/api/:path*', // Python Flask backend
       },
     ];
   },
