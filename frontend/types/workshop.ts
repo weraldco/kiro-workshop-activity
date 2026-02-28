@@ -6,6 +6,9 @@ export interface Workshop {
   id: string;
   title: string;
   description: string;
+  workshop_date?: string;
+  venue_type: 'online' | 'physical';
+  venue_address?: string;
   status: 'pending' | 'ongoing' | 'completed';
   signup_enabled: boolean;
   owner_id: string;
@@ -16,11 +19,17 @@ export interface Workshop {
 export interface CreateWorkshopData {
   title: string;
   description: string;
+  workshop_date?: string;
+  venue_type?: 'online' | 'physical';
+  venue_address?: string;
 }
 
 export interface UpdateWorkshopData {
   title?: string;
   description?: string;
+  workshop_date?: string;
+  venue_type?: 'online' | 'physical';
+  venue_address?: string;
   status?: 'pending' | 'ongoing' | 'completed';
   signup_enabled?: boolean;
 }

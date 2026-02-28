@@ -15,7 +15,9 @@ class WorkshopStore:
         """Initialize WorkshopStore"""
         pass
     
-    def create_workshop(self, title: str, description: str, owner_id: str) -> Dict[str, Any]:
+    def create_workshop(self, title: str, description: str, owner_id: str,
+                       workshop_date: str = None, venue_type: str = 'online',
+                       venue_address: str = None) -> Dict[str, Any]:
         """
         Create a new workshop
         
@@ -23,6 +25,9 @@ class WorkshopStore:
             title: Workshop title
             description: Workshop description
             owner_id: ID of the user creating the workshop
+            workshop_date: Workshop date (YYYY-MM-DD format)
+            venue_type: 'online' or 'physical'
+            venue_address: Physical address if venue_type is 'physical'
             
         Returns:
             Created workshop dict
@@ -31,14 +36,16 @@ class WorkshopStore:
         
         with get_db_cursor() as cursor:
             cursor.execute("""
-                INSERT INTO workshops (id, title, description, status, signup_enabled, owner_id)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, (workshop_id, title, description, 'pending', True, owner_id))
+                INSERT INTO workshops (id, title, description, workshop_date, venue_type, 
+                                     venue_address, status, signup_enabled, owner_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (workshop_id, title, description, workshop_date, venue_type, 
+                  venue_address, 'pending', True, owner_id))
             
             # Fetch the created workshop
             cursor.execute("""
-                SELECT id, title, description, status, signup_enabled, owner_id,
-                       created_at, updated_at
+                SELECT id, title, description, workshop_date, venue_type, venue_address,
+                       status, signup_enabled, owner_id, created_at, updated_at
                 FROM workshops
                 WHERE id = %s
             """, (workshop_id,))
@@ -49,6 +56,7 @@ class WorkshopStore:
                 # Convert datetime to ISO string
                 workshop['created_at'] = workshop['created_at'].isoformat() if workshop['created_at'] else None
                 workshop['updated_at'] = workshop['updated_at'].isoformat() if workshop['updated_at'] else None
+                workshop['workshop_date'] = workshop['workshop_date'].isoformat() if workshop['workshop_date'] else None
                 # Convert boolean
                 workshop['signup_enabled'] = bool(workshop['signup_enabled'])
             
@@ -66,8 +74,8 @@ class WorkshopStore:
         """
         with get_db_cursor(commit=False) as cursor:
             cursor.execute("""
-                SELECT id, title, description, status, signup_enabled, owner_id,
-                       created_at, updated_at
+                SELECT id, title, description, workshop_date, venue_type, venue_address,
+                       status, signup_enabled, owner_id, created_at, updated_at
                 FROM workshops
                 WHERE id = %s
             """, (workshop_id,))
@@ -78,6 +86,7 @@ class WorkshopStore:
                 # Convert datetime to ISO string
                 workshop['created_at'] = workshop['created_at'].isoformat() if workshop['created_at'] else None
                 workshop['updated_at'] = workshop['updated_at'].isoformat() if workshop['updated_at'] else None
+                workshop['workshop_date'] = workshop['workshop_date'].isoformat() if workshop['workshop_date'] else None
                 # Convert boolean
                 workshop['signup_enabled'] = bool(workshop['signup_enabled'])
             
@@ -92,8 +101,8 @@ class WorkshopStore:
         """
         with get_db_cursor(commit=False) as cursor:
             cursor.execute("""
-                SELECT id, title, description, status, signup_enabled, owner_id,
-                       created_at, updated_at
+                SELECT id, title, description, workshop_date, venue_type, venue_address,
+                       status, signup_enabled, owner_id, created_at, updated_at
                 FROM workshops
                 ORDER BY created_at DESC
             """)
@@ -104,6 +113,7 @@ class WorkshopStore:
             for workshop in workshops:
                 workshop['created_at'] = workshop['created_at'].isoformat() if workshop['created_at'] else None
                 workshop['updated_at'] = workshop['updated_at'].isoformat() if workshop['updated_at'] else None
+                workshop['workshop_date'] = workshop['workshop_date'].isoformat() if workshop['workshop_date'] else None
                 workshop['signup_enabled'] = bool(workshop['signup_enabled'])
             
             return workshops
@@ -120,8 +130,8 @@ class WorkshopStore:
         """
         with get_db_cursor(commit=False) as cursor:
             cursor.execute("""
-                SELECT id, title, description, status, signup_enabled, owner_id,
-                       created_at, updated_at
+                SELECT id, title, description, workshop_date, venue_type, venue_address,
+                       status, signup_enabled, owner_id, created_at, updated_at
                 FROM workshops
                 WHERE owner_id = %s
                 ORDER BY created_at DESC
@@ -133,6 +143,7 @@ class WorkshopStore:
             for workshop in workshops:
                 workshop['created_at'] = workshop['created_at'].isoformat() if workshop['created_at'] else None
                 workshop['updated_at'] = workshop['updated_at'].isoformat() if workshop['updated_at'] else None
+                workshop['workshop_date'] = workshop['workshop_date'].isoformat() if workshop['workshop_date'] else None
                 workshop['signup_enabled'] = bool(workshop['signup_enabled'])
             
             return workshops
@@ -149,7 +160,8 @@ class WorkshopStore:
             Updated workshop dict or None if not found
         """
         # Build dynamic UPDATE query
-        allowed_fields = ['title', 'description', 'status', 'signup_enabled']
+        allowed_fields = ['title', 'description', 'workshop_date', 'venue_type', 
+                         'venue_address', 'status', 'signup_enabled']
         update_fields = []
         values = []
         

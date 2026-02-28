@@ -228,6 +228,12 @@ const WorkshopDetailPage: React.FC = () => {
                 {isOwner && (
                   <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
                     <button
+                      onClick={() => router.push(`/dashboard/workshops/${id}/content`)}
+                      className="px-3 py-1 text-sm bg-purple-50 text-purple-600 rounded hover:bg-purple-100 font-medium"
+                    >
+                      📚 Manage Content
+                    </button>
+                    <button
                       onClick={() => setIsEditing(true)}
                       className="px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded hover:bg-blue-100"
                     >

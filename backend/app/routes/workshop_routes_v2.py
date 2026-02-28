@@ -60,6 +60,9 @@ def create_workshop():
         
         title = data.get('title', '').strip()
         description = data.get('description', '').strip()
+        workshop_date = data.get('workshop_date', '').strip() or None
+        venue_type = data.get('venue_type', 'online').strip()
+        venue_address = data.get('venue_address', '').strip() or None
         
         # Validate input
         if not title:
@@ -90,6 +93,13 @@ def create_workshop():
                 "status": 400
             }), 400
         
+        if venue_type not in ['online', 'physical']:
+            return jsonify({
+                "error": "venue_type must be 'online' or 'physical'",
+                "code": "VALIDATION_ERROR",
+                "status": 400
+            }), 400
+        
         # Get current user from request context (set by @require_auth)
         current_user = request.current_user
         
@@ -97,7 +107,10 @@ def create_workshop():
         workshop = workshop_store.create_workshop(
             title=title,
             description=description,
-            owner_id=current_user['id']
+            owner_id=current_user['id'],
+            workshop_date=workshop_date,
+            venue_type=venue_type,
+            venue_address=venue_address
         )
         
         return jsonify(workshop), 201

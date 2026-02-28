@@ -85,6 +85,18 @@ def create_app(config=None):
     from app.routes.participant_routes import participant_bp
     app.register_blueprint(participant_bp)
     
+    from app.routes.lesson_routes import lesson_bp
+    app.register_blueprint(lesson_bp)
+    
+    from app.routes.challenge_routes import challenge_bp
+    app.register_blueprint(challenge_bp)
+    
+    from app.routes.exam_routes import exam_bp
+    app.register_blueprint(exam_bp)
+    
+    from app.routes.leaderboard_routes import leaderboard_bp
+    app.register_blueprint(leaderboard_bp)
+    
     # Keep old workshop routes for backward compatibility
     from app.routes.workshop_routes import workshop_bp
     app.register_blueprint(workshop_bp)

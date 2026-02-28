@@ -1,21 +1,24 @@
 /**
- * Create Workshop Modal Component
+ * Create Lesson Modal Component
  */
 import React, { useState } from 'react';
-import { createWorkshop } from '../../lib/workshops';
-import type { CreateWorkshopData } from '../../types/workshop';
+import { lessonApi } from '../../lib/lessons';
+import type { CreateLessonData } from '../../types/lesson';
 
-interface CreateWorkshopModalProps {
+interface CreateLessonModalProps {
+  workshopId: string;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-const CreateWorkshopModal: React.FC<CreateWorkshopModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const [formData, setFormData] = useState<CreateWorkshopData>({
+const CreateLessonModal: React.FC<CreateLessonModalProps> = ({ workshopId, isOpen, onClose, onSuccess }) => {
+  const [formData, setFormData] = useState<CreateLessonData>({
     title: '',
     description: '',
-    venue_type: 'online',
+    content: '',
+    order_index: 0,
+    points: 10,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,21 +29,22 @@ const CreateWorkshopModal: React.FC<CreateWorkshopModalProps> = ({ isOpen, onClo
     setLoading(true);
 
     try {
-      await createWorkshop(formData);
-      setFormData({ title: '', description: '', venue_type: 'online' });
+      await lessonApi.createLesson(workshopId, formData);
+      setFormData({ title: '', description: '', content: '', order_index: 0, points: 10 });
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create workshop');
+      setError(err.response?.data?.error || 'Failed to create lesson');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = e.target.type === 'number' ? parseInt(e.target.value) : e.target.value;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     });
   };
 
@@ -48,9 +52,9 @@ const CreateWorkshopModal: React.FC<CreateWorkshopModalProps> = ({ isOpen, onClo
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Create New Workshop</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Create New Lesson</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 py-4">
@@ -62,7 +66,7 @@ const CreateWorkshopModal: React.FC<CreateWorkshopModalProps> = ({ isOpen, onClo
 
           <div className="mb-4">
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-              Title
+              Title *
             </label>
             <input
               type="text"
@@ -73,7 +77,7 @@ const CreateWorkshopModal: React.FC<CreateWorkshopModalProps> = ({ isOpen, onClo
               required
               maxLength={200}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Workshop title"
+              placeholder="Lesson title"
             />
           </div>
 
@@ -86,76 +90,74 @@ const CreateWorkshopModal: React.FC<CreateWorkshopModalProps> = ({ isOpen, onClo
               name="description"
               value={formData.description}
               onChange={handleChange}
-              required
-              maxLength={1000}
-              rows={4}
+              rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Workshop description"
+              placeholder="Brief description"
             />
           </div>
 
           <div className="mb-4">
-            <label htmlFor="workshop_date" className="block text-sm font-medium text-gray-700 mb-1">
-              Date (Optional)
+            <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
+              Content
             </label>
-            <input
-              type="date"
-              id="workshop_date"
-              name="workshop_date"
-              value={formData.workshop_date || ''}
+            <textarea
+              id="content"
+              name="content"
+              value={formData.content}
               onChange={handleChange}
+              rows={8}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Lesson content (supports markdown)"
             />
           </div>
 
-          <div className="mb-4">
-            <label htmlFor="venue_type" className="block text-sm font-medium text-gray-700 mb-1">
-              Venue Type
-            </label>
-            <select
-              id="venue_type"
-              name="venue_type"
-              value={formData.venue_type}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="online">Online</option>
-              <option value="physical">Physical</option>
-            </select>
-          </div>
-
-          {formData.venue_type === 'physical' && (
-            <div className="mb-4">
-              <label htmlFor="venue_address" className="block text-sm font-medium text-gray-700 mb-1">
-                Venue Address
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label htmlFor="order_index" className="block text-sm font-medium text-gray-700 mb-1">
+                Order
               </label>
-              <textarea
-                id="venue_address"
-                name="venue_address"
-                value={formData.venue_address || ''}
+              <input
+                type="number"
+                id="order_index"
+                name="order_index"
+                value={formData.order_index}
                 onChange={handleChange}
-                rows={2}
+                min={0}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter physical address"
               />
             </div>
-          )}
+
+            <div>
+              <label htmlFor="points" className="block text-sm font-medium text-gray-700 mb-1">
+                Points
+              </label>
+              <input
+                type="number"
+                id="points"
+                name="points"
+                value={formData.points}
+                onChange={handleChange}
+                min={0}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
 
           <div className="flex justify-end space-x-3 pt-4">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? 'Creating...' : 'Create Workshop'}
+              {loading ? 'Creating...' : 'Create Lesson'}
             </button>
           </div>
         </form>
@@ -164,4 +166,4 @@ const CreateWorkshopModal: React.FC<CreateWorkshopModalProps> = ({ isOpen, onClo
   );
 };
 
-export default CreateWorkshopModal;
+export default CreateLessonModal;
